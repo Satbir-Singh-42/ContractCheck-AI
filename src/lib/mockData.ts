@@ -1,3 +1,8 @@
+// ─── Mock Data ────────────────────────────────────────────────────────────────
+// All mock/seed data lives here in one place.
+// When you connect a real backend, this file becomes irrelevant — just flip
+// USE_MOCK to false in api.ts and this file is never touched.
+
 export type RiskLevel = 'Safe' | 'Risky' | 'Non-compliant';
 
 export interface Clause {
@@ -20,6 +25,8 @@ export interface Report {
   status: 'Completed' | 'Analyzing' | 'Failed';
   clauses: Clause[];
 }
+
+// ─── Seed Reports ─────────────────────────────────────────────────────────────
 
 export const mockReports: Report[] = [
   {
@@ -111,13 +118,13 @@ export const mockReports: Report[] = [
     status: 'Completed',
     clauses: [
       {
-         id: 'cl_10',
-         title: 'Working Hours',
-         originalText: 'Standard working hours are 45 hours per week, Monday through Friday. Any additional hours will be compensated according to company policy.',
-         riskLevel: 'Safe',
-         issues: [],
-         suggestions: [],
-         relevantLaw: 'Factories Act, 1948 / State Shops and Establishments Act',
+        id: 'cl_10',
+        title: 'Working Hours',
+        originalText: 'Standard working hours are 45 hours per week, Monday through Friday. Any additional hours will be compensated according to company policy.',
+        riskLevel: 'Safe',
+        issues: [],
+        suggestions: [],
+        relevantLaw: 'Factories Act, 1948 / State Shops and Establishments Act',
       }
     ],
   },
@@ -126,3 +133,14 @@ export const mockReports: Report[] = [
 export const getReportById = (id: string): Report | undefined => {
   return mockReports.find(r => r.id === id);
 }
+
+// ─── Mock User ────────────────────────────────────────────────────────────────
+
+export const MOCK_USER = {
+  id: 'user_001',
+  name: 'Arjun Sharma',
+  email: 'arjun@techcorp.in',
+  plan: 'free' as const,
+  uploadsUsed: 2,
+  uploadsLimit: 3,
+};

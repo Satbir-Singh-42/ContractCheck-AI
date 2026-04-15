@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiLogin, apiSignup, apiLogout } from '../../lib/api';
 
 export interface User {
   id: string;
@@ -21,15 +22,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const MOCK_USER: User = {
-  id: 'user_001',
-  name: 'Arjun Sharma',
-  email: 'arjun@techcorp.in',
-  plan: 'free',
-  uploadsUsed: 2,
-  uploadsLimit: 3,
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,30 +34,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, _password: string) => {
-    await new Promise(r => setTimeout(r, 900));
-    const u: User = { ...MOCK_USER, email };
+  const persistUser = (u: User) => {
     setUser(u);
     localStorage.setItem('cc_user', JSON.stringify(u));
   };
 
-  const signup = async (name: string, email: string, _password: string) => {
-    await new Promise(r => setTimeout(r, 900));
-    const u: User = { ...MOCK_USER, name, email };
-    setUser(u);
-    localStorage.setItem('cc_user', JSON.stringify(u));
+  const login = async (email: string, password: string) => {
+    const res = await apiLogin({ email, password });
+    const u: User = {
+      id: res.user.id,
+      name: res.user.name,
+      email: res.user.email,
+      plan: res.user.plan === 'enterprise' ? 'pro' : res.user.plan,
+      uploadsUsed: res.user.uploads_used,
+      uploadsLimit: res.user.uploads_limit,
+    };
+    persistUser(u);
+  };
+
+  const signup = async (name: string, email: string, password: string) => {
+    const res = await apiSignup({ name, email, password });
+    const u: User = {
+      id: res.user.id,
+      name: res.user.name,
+      email: res.user.email,
+      plan: res.user.plan === 'enterprise' ? 'pro' : res.user.plan,
+      uploadsUsed: res.user.uploads_used,
+      uploadsLimit: res.user.uploads_limit,
+    };
+    persistUser(u);
   };
 
   const logout = () => {
+    apiLogout();
     setUser(null);
     localStorage.removeItem('cc_user');
   };
 
   const updateUser = (updates: Partial<User>) => {
     if (!user) return;
-    const updatedUser = { ...user, ...updates };
-    setUser(updatedUser);
-    localStorage.setItem('cc_user', JSON.stringify(updatedUser));
+    persistUser({ ...user, ...updates });
   };
 
   return (
