@@ -1,15 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router';
-import { Shield, ArrowLeft } from 'lucide-react';
+import { Shield, ChevronRight } from 'lucide-react';
+import { motion } from 'motion/react';
 import { PublicNavbar } from '../components/PublicNavbar';
-
-function BrandLogo({ size = 24 }: { size?: number }) {
-  return (
-    <div className="rounded-lg bg-blue-600 flex items-center justify-center shrink-0" style={{ width: size, height: size }}>
-      <Shield size={size * 0.6} className="text-white" />
-    </div>
-  );
-}
+import { cn } from '../../lib/utils';
 
 const SECTIONS = [
   {
@@ -107,48 +101,215 @@ Phone: +91 80-4567-8900`,
 ];
 
 export function PrivacyPage() {
+  const [activeSection, setActiveSection] = useState<string>(SECTIONS[0].title);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPos = window.scrollY + 200;
+      let curr = SECTIONS[0].title;
+      for (const s of SECTIONS) {
+        const id = s.title.replace(/\s+/g, '-').toLowerCase();
+        const el = document.getElementById(id);
+        if (el && el.offsetTop <= scrollPos) {
+          curr = s.title;
+        }
+      }
+      setActiveSection(curr);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToSection = (title: string) => {
+    const id = title.replace(/\s+/g, '-').toLowerCase();
+    const el = document.getElementById(id);
+    if (el) {
+      window.scrollTo({ top: el.offsetTop - 100, behavior: 'smooth' });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#060608] text-white">
+    <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30">
       <PublicNavbar />
 
-      <main className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-        <div className="mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-500/20 bg-blue-500/5 text-blue-400 text-xs font-semibold uppercase tracking-wider mb-5">
-            <Shield size={11} /> Legal
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Privacy Policy</h1>
-          <p className="text-slate-400">
-            Last updated: April 15, 2026 | Effective date: April 15, 2026
-          </p>
-          <p className="text-slate-400 mt-4 leading-relaxed">
-            ContractCheck AI Pvt. Ltd. (&quot;ContractCheck&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our AI-powered contract compliance analysis service, in compliance with the Digital Personal Data Protection Act, 2023 (DPDP Act) and other applicable Indian laws.
-          </p>
-        </div>
+      {/* Hero Section */}
+      <div className="relative pt-32 pb-20 overflow-hidden border-b border-white/[0.05]">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[60%] rounded-full bg-blue-600/[0.06] blur-[120px] pointer-events-none" />
+        <div className="absolute top-[20%] right-[-10%] w-[30%] h-[50%] rounded-full bg-purple-600/[0.04] blur-[100px] pointer-events-none" />
 
-        <div className="space-y-10">
-          {SECTIONS.map((section) => (
-            <section key={section.title} className="bg-[#0B0B0E] border border-white/[0.06] rounded-2xl p-6 md:p-8">
-              <h2 className="text-xl font-bold mb-4 text-white">{section.title}</h2>
-              <div className="text-sm text-slate-400 leading-relaxed whitespace-pre-line">
-                {section.content.split(/(\*\*.*?\*\*)/g).map((part, i) => {
-                  if (part.startsWith('**') && part.endsWith('**')) {
-                    return <strong key={i} className="text-slate-200">{part.slice(2, -2)}</strong>;
-                  }
-                  return <span key={i}>{part}</span>;
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-400 text-xs font-semibold uppercase tracking-wider mb-6"
+          >
+            <Shield size={14} /> Legal Trust & Security
+          </motion.div>
+          
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-br from-white to-slate-300 bg-clip-text text-transparent"
+          >
+            Privacy Policy
+          </motion.h1>
+          
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
+          >
+            ContractCheck AI Pvt. Ltd. is committed to protecting your privacy in compliance with the Digital Personal Data Protection Act, 2023.
+          </motion.p>
+          
+          <motion.p
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ duration: 0.5, delay: 0.3 }}
+             className="text-sm text-slate-500 mt-6 font-medium"
+          >
+            Effective Date: April 15, 2026
+          </motion.p>
+        </div>
+      </div>
+
+      <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-20">
+          
+          {/* Table of Contents - Sticky Sidebar */}
+          <div className="lg:w-1/3 shrink-0">
+            <div className="sticky top-32 bg-[#0B0B0E]/80 backdrop-blur-xl border border-white/[0.06] rounded-3xl p-6 hidden lg:block shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6 px-2">Table of Contents</h3>
+              <nav className="space-y-1">
+                {SECTIONS.map((s) => {
+                  const isActive = activeSection === s.title;
+                  return (
+                    <button
+                      key={s.title}
+                      onClick={() => scrollToSection(s.title)}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-300 text-left cursor-pointer group",
+                        isActive 
+                          ? "bg-blue-600/10 text-blue-400 font-semibold shadow-inner" 
+                          : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]"
+                      )}
+                    >
+                      <span className={cn(
+                        "w-1.5 h-1.5 rounded-full transition-all duration-300",
+                        isActive ? "bg-blue-400 scale-100 shadow-[0_0_8px_rgba(96,165,250,0.6)]" : "bg-slate-600 scale-0 group-hover:scale-100"
+                      )} />
+                      <span className="truncate">{s.title}</span>
+                    </button>
+                  );
                 })}
-              </div>
-            </section>
-          ))}
+              </nav>
+            </div>
+            
+            {/* Mobile TOC - Select form */}
+            <div className="lg:hidden mb-12 relative z-20">
+               <div className="bg-[#0B0B0E] border border-white/[0.06] rounded-xl p-1 flex items-center relative overflow-hidden shadow-lg">
+                 <select 
+                    className="w-full bg-transparent text-white appearance-none outline-none py-3 px-4 text-sm z-10 cursor-pointer"
+                    value={activeSection}
+                    onChange={(e) => scrollToSection(e.target.value)}
+                 >
+                   {SECTIONS.map(s => (
+                     <option key={s.title} value={s.title} className="bg-[#0B0B0E]">{s.title}</option>
+                   ))}
+                 </select>
+                 <ChevronRight size={16} className="absolute right-4 text-slate-500 pointer-events-none rotate-90" />
+               </div>
+            </div>
+          </div>
+
+          {/* Content Sections */}
+          <div className="lg:w-2/3 space-y-16">
+            {SECTIONS.map((section) => {
+              const id = section.title.replace(/\s+/g, '-').toLowerCase();
+              return (
+                <motion.section 
+                  key={section.title} 
+                  id={id}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  className="scroll-mt-32 relative group"
+                >
+                  {/* Timeline connecting line (desktop) */}
+                  <div className="absolute -left-10 top-4 bottom-[-64px] w-px bg-gradient-to-b from-white/[0.1] to-transparent hidden lg:block group-last:hidden" />
+                  {/* Timeline dot (desktop) */}
+                  <div className="absolute -left-[44px] top-5 w-2 h-2 rounded-full border border-[#060608] bg-slate-700 group-hover:bg-blue-500 group-hover:shadow-[0_0_12px_rgba(59,130,246,0.6)] transition-all duration-300 hidden lg:block" />
+                  
+                  <h2 className="text-2xl md:text-3xl font-bold mb-6 text-white tracking-tight flex items-center gap-4">
+                    {section.title}
+                  </h2>
+                  <div className="bg-[#0B0B0E] border border-white/[0.06] rounded-3xl p-6 md:p-10 hover:border-white/[0.1] hover:bg-white/[0.01] transition-all duration-500 shadow-xl">
+                    <div className="text-base text-slate-400 leading-relaxed space-y-6">
+                      {section.content.split('\n\n').map((paragraph, pIdx) => {
+                        // Check if paragraph is list
+                        if (paragraph.startsWith('- ')) {
+                          const items = paragraph.split('\n').filter(line => line.startsWith('- '));
+                          return (
+                            <div key={pIdx} className="space-y-4 mt-6 bg-white/[0.02] border border-white/[0.04] p-5 rounded-2xl">
+                              {items.map((item, i) => {
+                                const liContent = item.substring(2);
+                                const subParts = liContent.split(/(\*\*.*?\*\*)/g).filter(Boolean);
+                                return (
+                                  <div key={i} className="flex items-start gap-4">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2.5 shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                                    <span className="flex-1 text-slate-300">
+                                      {subParts.map((sp, k) => (
+                                        sp.startsWith('**') && sp.endsWith('**') 
+                                          ? <strong key={k} className="text-white font-semibold">{sp.slice(2, -2)}</strong>
+                                          : <span key={k}>{sp}</span>
+                                      ))}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        }
+                        
+                        // Normal paragraph parsing
+                        const parts = paragraph.split(/(\*\*.*?\*\*)/g).filter(Boolean);
+                        
+                        return (
+                          <div key={pIdx} className="text-slate-400">
+                            {parts.map((p, i) => {
+                              if (p.startsWith('**') && p.endsWith('**')) {
+                                // If the paragraph started with this bold phrase, treat as subheader
+                                if (i === 0) {
+                                  return <strong key={i} className="text-white block font-semibold text-lg mb-2 mt-2">{p.slice(2, -2)}</strong>;
+                                }
+                                return <strong key={i} className="text-slate-200 font-semibold">{p.slice(2, -2)}</strong>;
+                              }
+                              return <span key={i}>{p}</span>;
+                            })}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </motion.section>
+              );
+            })}
+          </div>
+
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/[0.05] bg-[#060608] py-8">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-600">
+      <footer className="border-t border-white/[0.05] bg-[#060608] py-12 mt-12">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-slate-500">
           <p>&copy; {new Date().getFullYear()} ContractCheck AI. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <Link to="/contact" className="hover:text-slate-300 transition-colors">Contact</Link>
-            <Link to="/" className="hover:text-slate-300 transition-colors">Home</Link>
+          <div className="flex items-center gap-8 font-medium">
+            <Link to="/contact" className="hover:text-blue-400 transition-colors">Contact Support</Link>
+            <Link to="/" className="hover:text-blue-400 transition-colors">Home Dashboard</Link>
           </div>
         </div>
       </footer>

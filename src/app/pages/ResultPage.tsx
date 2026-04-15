@@ -327,39 +327,51 @@ export function ResultPage() {
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
     const ph = doc.internal.pageSize.getHeight();
-    const m = 20;
+    const m = 20; // Tight, professional margins
     const cw = pw - m * 2;
     let y = 0;
     let pageNum = 1;
 
+    // Premium Solid Color Palette (No opacity hacks)
     const C = {
+      bg: [255, 255, 255] as [number, number, number],
+      headerBg: [10, 15, 25] as [number, number, number],
+      headerAccent: [37, 99, 235] as [number, number, number],
+      title: [15, 23, 42] as [number, number, number],
+      body: [51, 65, 85] as [number, number, number],
+      muted: [100, 116, 139] as [number, number, number],
+      light: [226, 232, 240] as [number, number, number],
+      divider: [241, 245, 249] as [number, number, number],
+      
       safe: [16, 185, 129] as [number, number, number],
       risky: [245, 158, 11] as [number, number, number],
       bad: [239, 68, 68] as [number, number, number],
-      blue: [59, 130, 246] as [number, number, number],
-      headerBg: [15, 23, 42] as [number, number, number],
-      headerBg2: [30, 41, 59] as [number, number, number],
-      title: [30, 41, 59] as [number, number, number],
-      body: [71, 85, 105] as [number, number, number],
-      muted: [100, 116, 139] as [number, number, number],
-      light: [148, 163, 184] as [number, number, number],
-      cardBg: [248, 250, 252] as [number, number, number],
-      quoteBg: [241, 245, 249] as [number, number, number],
-      divider: [226, 232, 240] as [number, number, number],
       white: [255, 255, 255] as [number, number, number],
+      
+      safeLight: [236, 253, 245] as [number, number, number],
+      riskyLight: [255, 251, 235] as [number, number, number],
+      badLight: [254, 242, 242] as [number, number, number],
+      blueFill: [239, 246, 255] as [number, number, number],
     };
+
     const riskColor = (level: string): [number, number, number] =>
       level === 'Safe' ? C.safe : level === 'Risky' ? C.risky : C.bad;
+      
+    const riskLightColor = (level: string): [number, number, number] =>
+      level === 'Safe' ? C.safeLight : level === 'Risky' ? C.riskyLight : C.badLight;
+
     const overallColor = report.overallRisk === 'High' ? C.bad : report.overallRisk === 'Medium' ? C.risky : C.safe;
 
     function addPageFooter() {
-      doc.setFontSize(7);
+      doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(...C.light);
-      doc.text(`ContractCheck AI  |  Compliance Analysis Report`, m, ph - 8);
-      doc.text(`Page ${pageNum}`, pw - m, ph - 8, { align: 'right' });
-      doc.setDrawColor(...C.divider);
-      doc.line(m, ph - 12, pw - m, ph - 12);
+      doc.setTextColor(...C.muted);
+      doc.text(`ContractCheck AI \u2022 Compliance Intelligence Report`, m, ph - 12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Page ${pageNum}`, pw - m, ph - 12, { align: 'right' });
+      doc.setDrawColor(...C.light);
+      doc.setLineWidth(0.5);
+      doc.line(m, ph - 18, pw - m, ph - 18);
     }
 
     function newPage() {
@@ -370,341 +382,348 @@ export function ResultPage() {
     }
 
     function ensureSpace(needed: number) {
-      if (y + needed > ph - 18) newPage();
+      if (y + needed > ph - 25) newPage();
     }
 
     // ════════════════════════════════════════════════════════════════
-    // HEADER
+    // PREMIUM HEADER
     // ════════════════════════════════════════════════════════════════
 
-    const headerH = 58;
+    const headerH = 65;
     doc.setFillColor(...C.headerBg);
     doc.rect(0, 0, pw, headerH, 'F');
-    doc.setFillColor(...C.headerBg2);
-    doc.rect(0, headerH - 6, pw, 6, 'F');
+    doc.setFillColor(...C.headerAccent);
+    doc.rect(0, headerH - 2, pw, 2, 'F');
 
-    doc.setFontSize(22);
+    doc.setFontSize(26);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...C.white);
-    doc.text('ContractCheck AI', m, 22);
+    doc.text('ContractCheck AI', m, 26);
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...C.light);
-    doc.text('Compliance Analysis Report', m, 31);
+    doc.setTextColor(148, 163, 184); 
+    doc.text('COMPLIANCE INTELLIGENCE REPORT', m, 36);
 
-    const genDate = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    const genDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
     doc.setFontSize(8);
-    doc.text(`Generated: ${genDate}`, m, 40);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Ref: ${report.id.substring(0,8)}  |  Generated on ${genDate}`, m, 48);
 
-    // Score badge
-    const scoreR = 16;
-    const scoreCx = pw - m - scoreR - 2;
-    const scoreCy = 24;
+    // Score badge - No opacities, pure clean lines
+    const scoreR = 17;
+    const scoreCx = pw - m - scoreR;
+    const scoreCy = 30;
+    
     doc.setDrawColor(...overallColor);
-    doc.setLineWidth(2.5);
+    doc.setLineWidth(2);
     doc.circle(scoreCx, scoreCy, scoreR, 'S');
-    doc.setFillColor(...overallColor);
-    doc.circle(scoreCx, scoreCy, scoreR - 2, 'F');
+
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...C.white);
-    doc.text(String(score), scoreCx, scoreCy + 1, { align: 'center' });
-    doc.setFontSize(8);
+    doc.text(String(score), scoreCx, scoreCy + 2, { align: 'center' });
+    
+    doc.setFontSize(6.5);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...overallColor);
-    doc.text(OVERALL_CONFIG[report.overallRisk].label.toUpperCase(), scoreCx, scoreCy + scoreR + 8, { align: 'center' });
-    doc.setLineWidth(0.2);
+    doc.text(OVERALL_CONFIG[report.overallRisk].label.toUpperCase(), scoreCx, scoreCy + scoreR + 6, { align: 'center' });
 
-    y = headerH + 14;
+    y = headerH + 20;
 
     // ════════════════════════════════════════════════════════════════
-    // DOCUMENT INFO
+    // DOCUMENT INFO MATRIX
     // ════════════════════════════════════════════════════════════════
 
-    doc.setFontSize(15);
+    doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...C.title);
     doc.text(report.name, m, y);
-    y += 7;
+    y += 10;
 
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...C.muted);
-    doc.text(`Type: ${report.type}   |   Parties: ${report.parties}`, m, y);
-    y += 5;
+    const infoBoxW = (cw - 8) / 2;
+    const drawInfoPanel = (x: number, yPos: number, title: string, val: string) => {
+        doc.setFillColor(248, 250, 252); // slate-50
+        doc.setDrawColor(...C.divider);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(x, yPos, infoBoxW, 14, 2, 2, 'FD');
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...C.muted);
+        doc.text(title.toUpperCase(), x + 4, yPos + 5.5);
+        doc.setFontSize(9);
+        doc.setTextColor(...C.title);
+        doc.text(val, x + 4, yPos + 11);
+    };
+
+    drawInfoPanel(m, y, 'Document Type', report.type);
+    drawInfoPanel(m + infoBoxW + 8, y, 'Parties Involved', report.parties);
+    y += 18;
+    
     const dateStr = new Date(report.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-    doc.text(`Analyzed: ${dateStr}   |   Status: ${report.status}`, m, y);
-    y += 12;
+    drawInfoPanel(m, y, 'Analysis Date', dateStr);
+    drawInfoPanel(m + infoBoxW + 8, y, 'Current Status', report.status);
+    y += 24;
 
     // ════════════════════════════════════════════════════════════════
-    // SUMMARY STATS (3 colored boxes)
+    // SUMMARY STATS 
     // ════════════════════════════════════════════════════════════════
 
-    const boxW = (cw - 8) / 3;
+    const boxW = (cw - 12) / 3;
     const boxH = 22;
-    const statsData: { label: string; count: number; color: [number, number, number] }[] = [
-      { label: 'Safe', count: safe, color: C.safe },
-      { label: 'Risky', count: risky, color: C.risky },
-      { label: 'Non-compliant', count: bad, color: C.bad },
+    const statsData: { label: string; count: number; color: [number, number, number], lightCol: [number, number, number] }[] = [
+      { label: 'Safe Clauses', count: safe, color: C.safe, lightCol: C.safeLight },
+      { label: 'Risky Clauses', count: risky, color: C.risky, lightCol: C.riskyLight },
+      { label: 'Non-compliant', count: bad, color: C.bad, lightCol: C.badLight },
     ];
 
-    statsData.forEach(({ label, count, color }, i) => {
-      const bx = m + i * (boxW + 4);
-      // Tinted background
-      doc.setFillColor(color[0], color[1], color[2]);
-      doc.setGState(new GState({ opacity: 0.08 }));
-      doc.roundedRect(bx, y, boxW, boxH, 3, 3, 'F');
-      doc.setGState(new GState({ opacity: 1 }));
-      // Left accent bar
-      doc.setFillColor(...color);
-      doc.roundedRect(bx, y, 3, boxH, 1.5, 1.5, 'F');
-      // Count
-      doc.setFontSize(16);
+    statsData.forEach(({ label, count, color, lightCol }, i) => {
+      const bx = m + i * (boxW + 6);
+      
+      doc.setFillColor(...lightCol);
+      doc.setDrawColor(...color);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(bx, y, boxW, boxH, 2, 2, 'FD');
+
+      doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...color);
-      doc.text(String(count), bx + 12, y + 13);
-      // Label
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(...C.muted);
-      doc.text(label, bx + 12, y + 19);
+      doc.text(String(count), bx + boxW / 2, y + 13, { align: 'center' });
+      
+      doc.setFontSize(7.5);
+      doc.text(label.toUpperCase(), bx + boxW / 2, y + 18, { align: 'center' });
     });
-    y += boxH + 10;
+    y += boxH + 12;
 
-    // Compliance bar
-    const barH = 4;
-    const barY = y;
-    doc.setFillColor(230, 230, 235);
-    doc.roundedRect(m, barY, cw, barH, 2, 2, 'F');
+    // Compliance Bar
+    const barH = 5;
+    doc.setFillColor(...C.light);
+    doc.roundedRect(m, y, cw, barH, 2.5, 2.5, 'F');
     const safePctPdf = total > 0 ? (safe / total) : 0;
     const riskyPctPdf = total > 0 ? (risky / total) : 0;
     const badPctPdf = total > 0 ? (bad / total) : 0;
+    
     let barX = m;
     if (safePctPdf > 0) {
       doc.setFillColor(...C.safe);
-      doc.roundedRect(barX, barY, cw * safePctPdf, barH, 2, 2, 'F');
+      doc.roundedRect(barX, y, cw * safePctPdf, barH, 2.5, 2.5, 'F');
       barX += cw * safePctPdf;
     }
     if (riskyPctPdf > 0) {
       doc.setFillColor(...C.risky);
-      doc.rect(barX, barY, cw * riskyPctPdf, barH, 'F');
+      doc.rect(barX, y, cw * riskyPctPdf, barH, 'F');
       barX += cw * riskyPctPdf;
     }
     if (badPctPdf > 0) {
       doc.setFillColor(...C.bad);
-      doc.roundedRect(barX, barY, cw * badPctPdf, barH, 0, 2, 'F');
+      doc.roundedRect(barX, y, cw * badPctPdf, barH, 0, 2.5, 'F');
     }
-    y += barH + 12;
+    y += barH + 20;
 
     // ════════════════════════════════════════════════════════════════
-    // CLAUSE ANALYSIS HEADING
+    // CLAUSE ANALYSIS 
     // ════════════════════════════════════════════════════════════════
-
-    doc.setDrawColor(...C.divider);
-    doc.line(m, y, pw - m, y);
-    y += 8;
 
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...C.title);
     doc.text('Clause Analysis', m, y);
-    y += 10;
-
-    // ════════════════════════════════════════════════════════════════
-    // EACH CLAUSE
-    // ════════════════════════════════════════════════════════════════
+    
+    y += 4;
+    doc.setDrawColor(...C.headerAccent);
+    doc.setLineWidth(1.5);
+    doc.line(m, y, m + 30, y);
+    doc.setDrawColor(...C.light);
+    doc.setLineWidth(0.5);
+    doc.line(m + 30, y, pw - m, y);
+    y += 12;
 
     report.clauses.forEach((clause, idx) => {
       const rc = riskColor(clause.riskLevel);
+      const rl = riskLightColor(clause.riskLevel);
       const hasIssues = clause.issues.length > 0;
       const hasSuggestions = clause.suggestions.length > 0;
 
       ensureSpace(50);
-
-      // Clause header bar with colored left accent
-      const chH = 12;
-      doc.setFillColor(...C.cardBg);
-      doc.roundedRect(m, y, cw, chH, 3, 3, 'F');
+      
+      const startY = y;
+      
+      // Title Block
+      doc.setFillColor(...rl);
+      doc.rect(m, y, cw, 10, 'F');
       doc.setFillColor(...rc);
-      doc.roundedRect(m, y, 4, chH, 2, 2, 'F');
-      doc.rect(m + 2, y, 2, chH, 'F');
-
-      // Colored dot
-      doc.setFillColor(...rc);
-      doc.circle(m + 12, y + chH / 2, 2.5, 'F');
-
-      // Title
-      doc.setFontSize(11);
+      doc.rect(m, y, 4, 10, 'F');
+      
+      doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...C.title);
-      doc.text(`${idx + 1}. ${clause.title}`, m + 19, y + chH / 2 + 1);
-
-      // Risk badge pill
+      doc.text(`${idx + 1}. ${clause.title}`, m + 8, y + 6.5);
+      
+      // Right-aligned Risk Pill
       const badgeLabel = clause.riskLevel.toUpperCase();
-      doc.setFontSize(7.5);
+      doc.setFontSize(6.5);
       doc.setFont('helvetica', 'bold');
       const badgeTextW = doc.getTextWidth(badgeLabel);
-      const badgePadX = 5;
-      const badgeTotalW = badgeTextW + badgePadX * 2;
-      const badgeTotalH = 8;
+      const badgeTotalW = badgeTextW + 10;
       const badgeX = pw - m - badgeTotalW - 4;
-      const badgeY = y + (chH - badgeTotalH) / 2;
-      doc.setDrawColor(...rc);
-      doc.setLineWidth(0.5);
-      doc.roundedRect(badgeX, badgeY, badgeTotalW, badgeTotalH, badgeTotalH / 2, badgeTotalH / 2, 'S');
-      doc.setTextColor(...rc);
-      doc.text(badgeLabel, badgeX + badgePadX, badgeY + 5.5);
-      doc.setLineWidth(0.2);
+      
+      doc.setFillColor(...rc);
+      doc.roundedRect(badgeX, y + 2, badgeTotalW, 6, 3, 3, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.text(badgeLabel, badgeX + 5, y + 6.2);
+      
+      y += 16;
 
-      y += chH + 5;
-
-      // Original clause quote box
-      doc.setFontSize(8);
+      // Original Clause Box
+      doc.setFontSize(7.5);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...C.muted);
-      doc.text('ORIGINAL CLAUSE:', m + 4, y);
-      y += 5;
+      doc.text('ORIGINAL CLAUSE', m + 6, y);
+      y += 4;
 
-      doc.setFontSize(9);
-      const quoteLines: string[] = doc.splitTextToSize(`"${clause.originalText}"`, cw - 20);
-      const quoteLh = 4.5;
-      const quoteTextH = quoteLines.length * quoteLh;
-      const quoteBoxH = quoteTextH + 8;
-
-      ensureSpace(quoteBoxH + 4);
-      doc.setFillColor(...C.quoteBg);
-      doc.roundedRect(m + 2, y - 2, cw - 4, quoteBoxH, 3, 3, 'F');
-      doc.setFillColor(...C.light);
-      doc.roundedRect(m + 2, y - 2, 2.5, quoteBoxH, 1, 1, 'F');
-
+      doc.setFontSize(8.5);
       doc.setFont('helvetica', 'italic');
       doc.setTextColor(...C.body);
+      const quoteLines: string[] = doc.splitTextToSize(`"${clause.originalText}"`, cw - 16);
       let quoteY = y + 2;
+      
+      doc.setDrawColor(...C.light);
+      doc.setLineWidth(1.5);
+      doc.line(m + 6, quoteY - 2, m + 6, quoteY + quoteLines.length * 4.2);
+      
       for (const line of quoteLines) {
         doc.text(line, m + 10, quoteY);
-        quoteY += quoteLh;
+        quoteY += 4.2;
       }
-      y += quoteBoxH + 4;
+      y = quoteY + 4;
 
-      // Issues
       if (hasIssues) {
         ensureSpace(14);
-        doc.setFontSize(8);
+        doc.setFontSize(7.5);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(...C.bad);
-        doc.text(`ISSUES (${clause.issues.length}):`, m + 4, y);
-        y += 5;
+        doc.text(`ISSUES (${clause.issues.length})`, m + 6, y);
+        y += 4.5;
 
+        doc.setFontSize(8.5);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...C.body);
         clause.issues.forEach((issue) => {
           ensureSpace(10);
           doc.setFillColor(...C.bad);
-          doc.circle(m + 8, y - 1.2, 1.5, 'F');
-          doc.setFontSize(9);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(...C.body);
-          const issueLines: string[] = doc.splitTextToSize(issue, cw - 20);
+          doc.circle(m + 8, y - 1, 1, 'F');
+          const issueLines: string[] = doc.splitTextToSize(issue, cw - 18);
           for (const line of issueLines) {
             ensureSpace(5);
-            doc.text(line, m + 14, y);
-            y += 4.5;
+            doc.text(line, m + 12, y);
+            y += 4.2;
           }
           y += 1.5;
         });
-        y += 1;
+        y += 2;
       }
 
-      // AI Recommendations
       if (hasSuggestions) {
         ensureSpace(14);
-        doc.setFontSize(8);
+        doc.setFontSize(7.5);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...C.blue);
-        doc.text(`AI RECOMMENDATIONS (${clause.suggestions.length}):`, m + 4, y);
-        y += 5;
+        doc.setTextColor(...C.headerAccent);
+        doc.text(`AI FIX SUGGESTIONS`, m + 6, y);
+        y += 4.5;
 
-        clause.suggestions.forEach((s, si) => {
+        doc.setFontSize(8.5);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...C.body);
+        clause.suggestions.forEach((s) => {
           ensureSpace(10);
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(...C.blue);
-          doc.text(`${si + 1}.`, m + 7, y);
-          doc.setFontSize(9);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(...C.body);
-          const sugLines: string[] = doc.splitTextToSize(s, cw - 22);
+          const sugLines: string[] = doc.splitTextToSize(s, cw - 18);
+          
+          doc.setFillColor(...C.blueFill);
+          doc.roundedRect(m + 6, y - 4, cw - 12, sugLines.length * 4.2 + 3, 2, 2, 'F');
+          
+          doc.setFillColor(...C.headerAccent);
+          doc.circle(m + 9, y - 1, 1, 'F');
+
           for (const line of sugLines) {
             ensureSpace(5);
-            doc.text(line, m + 16, y);
-            y += 4.5;
+            doc.text(line, m + 13, y);
+            y += 4.2;
           }
-          y += 1.5;
+          y += 2.5;
         });
-        y += 1;
+        y += 2;
       }
 
-      // Law reference
-      ensureSpace(8);
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'italic');
-      doc.setTextColor(...C.light);
-      doc.text(`Ref: ${clause.relevantLaw}`, m + 4, y);
+      ensureSpace(10);
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...C.muted);
+      doc.text(`REFERENCE LAW:`, m + 6, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(clause.relevantLaw, m + 32, y);
       y += 8;
 
-      // Dashed separator
-      if (idx < report.clauses.length - 1) {
-        ensureSpace(8);
-        doc.setDrawColor(...C.divider);
-        doc.setLineDashPattern([3, 3], 0);
-        doc.line(m + 6, y, pw - m - 6, y);
-        doc.setLineDashPattern([], 0);
-        y += 10;
-      }
+      // Outer Box border
+      doc.setDrawColor(...C.light);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(m, startY, cw, y - startY, 3, 3, 'S');
+
+      y += 10;
     });
 
     // ════════════════════════════════════════════════════════════════
-    // REGULATIONS REFERENCED
+    // REFERENCED LAWS
     // ════════════════════════════════════════════════════════════════
 
-    y += 6;
-    ensureSpace(30);
-    doc.setDrawColor(...C.divider);
-    doc.setLineWidth(0.4);
-    doc.line(m, y, pw - m, y);
-    doc.setLineWidth(0.2);
-    y += 8;
-
-    doc.setFontSize(11);
+    ensureSpace(35);
+    
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...C.title);
-    doc.text('Regulations Referenced', m, y);
-    y += 7;
+    doc.text('Regulations Reference Index', m, y);
+    
+    y += 4;
+    doc.setDrawColor(...C.light);
+    doc.setLineWidth(1);
+    doc.line(m, y, m + 20, y);
+    y += 8;
 
     const laws = [...new Set(report.clauses.map(c => c.relevantLaw))];
-    doc.setFontSize(9);
+    doc.setFontSize(8.5);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...C.muted);
+    doc.setTextColor(...C.body);
+    
     laws.forEach((law) => {
-      ensureSpace(6);
-      doc.setFillColor(...C.muted);
-      doc.circle(m + 4, y - 1.2, 1, 'F');
-      doc.text(law, m + 9, y);
-      y += 5.5;
+      ensureSpace(8);
+      doc.setFillColor(...C.headerAccent);
+      doc.circle(m + 5, y - 1, 1, 'F');
+      
+      const lawLines = doc.splitTextToSize(law, cw - 12);
+      for (const line of lawLines) {
+        doc.text(line, m + 9, y);
+        y += 4.2;
+      }
+      y += 1.5;
     });
 
     // ════════════════════════════════════════════════════════════════
     // DISCLAIMER
     // ════════════════════════════════════════════════════════════════
 
-    y += 8;
-    ensureSpace(16);
-    doc.setDrawColor(...C.divider);
-    doc.line(m, y, pw - m, y);
-    y += 6;
+    y += 15;
+    ensureSpace(20);
+    doc.setFillColor(...C.badLight);
+    doc.setDrawColor(252, 165, 165);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(m, y, cw, 14, 2, 2, 'FD');
+
     doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(220, 38, 38);
+    doc.text('DISCLAIMER', m + 5, y + 5.5);
+    
     doc.setFont('helvetica', 'italic');
-    doc.setTextColor(200, 100, 100);
-    doc.text('This report is AI-generated and does not constitute legal advice. Always consult a qualified advocate.', m, y);
+    doc.text('This report is generated by an AI model and is intended for informational/preliminary purposes only. Always consult a legal advocate.', m + 5, y + 10.5);
 
     addPageFooter();
 
