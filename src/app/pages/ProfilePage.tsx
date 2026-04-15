@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
+import { supabase } from '../../lib/supabase';
 import {
   User, Mail, Shield, Zap, Bell, Key, LogOut,
   CheckCircle, ChevronRight, FileText, AlertTriangle,
@@ -53,17 +54,37 @@ export function ProfilePage() {
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !user) return;
     if (!file.type.startsWith('image/')) return;
-    if (file.size > 5 * 1024 * 1024) return; // 5MB limit
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      updateUser({ profilePhoto: dataUrl });
-    };
-    reader.readAsDataURL(file);
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Maximum file size is 5MB.');
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${user.id}/avatar_${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      alert('Error uploading photo: ' + uploadError.message);
+      setIsUploadingPhoto(false);
+      return;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    await updateUser({ profilePhoto: publicUrl });
+    setIsUploadingPhoto(false);
   };
 
   const handleRemovePhoto = () => {
@@ -116,9 +137,17 @@ export function ProfilePage() {
                 {user.name.charAt(0).toUpperCase()}
               </div>
             )}
+            
+            {isUploadingPhoto && (
+              <div className="absolute inset-0 rounded-2xl bg-black/70 flex items-center justify-center backdrop-blur-sm">
+                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              </div>
+            )}
+
             <button
-              onClick={() => fileInputRef.current?.click()}
-              className="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+              onClick={() => !isUploadingPhoto && fileInputRef.current?.click()}
+              disabled={isUploadingPhoto}
+              className="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer disabled:cursor-wait"
             >
               <Camera size={22} className="text-white" />
             </button>
@@ -569,8 +598,6 @@ function NotifSection({
     </div>
   );
 }
-
-import { supabase } from '../../lib/supabase';
 
 function ChangePasswordModal({ onClose }: { onClose: () => void }) {
   const [showCurrent, setShowCurrent] = useState(false);

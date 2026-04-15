@@ -61,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       organization: profile.organization || '',
       role: profile.role || '',
       notificationPrefs: profile.notification_prefs || null,
+      profilePhoto: profile.avatar_url || undefined,
     };
   };
 
@@ -157,6 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if ('organization' in updates) dbUpdates.organization = updates.organization;
     if ('role' in updates) dbUpdates.role = updates.role;
     if ('notificationPrefs' in updates) dbUpdates.notification_prefs = updates.notificationPrefs;
+    if ('profilePhoto' in updates) dbUpdates.avatar_url = updates.profilePhoto ?? null;
 
     if (Object.keys(dbUpdates).length > 0) {
       await supabase.from('profiles').update(dbUpdates).eq('id', user.id);
