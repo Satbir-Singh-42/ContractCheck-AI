@@ -25,7 +25,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen w-full bg-[#060608] text-white flex flex-col">
       {/* Top Nav */}
-      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#060608]/90 md:backdrop-blur-md">
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.06] bg-[#060608]/90 md:backdrop-blur-md">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Shield className="w-6 h-6 text-blue-400" />
@@ -123,6 +123,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         )}
       </header>
+
+      <div className="h-16 shrink-0" aria-hidden="true" />
 
       <main className="flex-1">
         {children}
