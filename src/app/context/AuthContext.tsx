@@ -9,6 +9,9 @@ export interface User {
   uploadsUsed: number;
   uploadsLimit: number;
   profilePhoto?: string;
+  organization?: string;
+  role?: string;
+  notificationPrefs?: any;
 }
 
 interface AuthContextType {
@@ -42,6 +45,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         plan: 'free',
         uploadsUsed: 0,
         uploadsLimit: 3,
+        organization: '',
+        role: '',
+        notificationPrefs: null,
       };
     }
 
@@ -52,6 +58,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       plan: profile.plan === 'enterprise' ? 'pro' : profile.plan,
       uploadsUsed: profile.uploads_used || 0,
       uploadsLimit: profile.uploads_limit || 3,
+      organization: profile.organization || '',
+      role: profile.role || '',
+      notificationPrefs: profile.notification_prefs || null,
     };
   };
 
@@ -76,7 +85,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                  email: session.user.email || '',
                  plan: 'free',
                  uploadsUsed: 0,
-                 uploadsLimit: 3
+                 uploadsLimit: 3,
+                 organization: '',
+                 role: '',
+                 notificationPrefs: null,
                });
              }
           }
@@ -140,8 +152,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) return;
     setUser({ ...user, ...updates });
     // Keep backend in sync
-    if (updates.name) {
-      await supabase.from('profiles').update({ name: updates.name }).eq('id', user.id);
+    const dbUpdates: any = {};
+    if ('name' in updates) dbUpdates.name = updates.name;
+    if ('organization' in updates) dbUpdates.organization = updates.organization;
+    if ('role' in updates) dbUpdates.role = updates.role;
+    if ('notificationPrefs' in updates) dbUpdates.notification_prefs = updates.notificationPrefs;
+
+    if (Object.keys(dbUpdates).length > 0) {
+      await supabase.from('profiles').update(dbUpdates).eq('id', user.id);
     }
   };
 

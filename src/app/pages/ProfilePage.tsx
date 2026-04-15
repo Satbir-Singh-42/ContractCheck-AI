@@ -24,13 +24,16 @@ export function ProfilePage() {
   const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('general');
-  const [role, setRole] = useState('');
+  
+  // Form State
+  const [name, setName] = useState(user?.name || '');
+  const [organization, setOrganization] = useState(user?.organization || '');
+  const [role, setRole] = useState(user?.role || '');
+  const [isSavingGeneral, setIsSavingGeneral] = useState(false);
+
   const [saved, setSaved] = useState(false);
   const [notif, setNotif] = useState(() => {
-    try {
-      const stored = localStorage.getItem('contractcheck_notif_prefs');
-      if (stored) return JSON.parse(stored);
-    } catch {}
+    if (user?.notificationPrefs) return user.notificationPrefs;
     return {
       analysisComplete: true,
       analysisFailed: true,
@@ -44,9 +47,9 @@ export function ProfilePage() {
   });
   const [notifSaved, setNotifSaved] = useState(false);
   const [notifDirty, setNotifDirty] = useState(false);
+  const [isSavingNotif, setIsSavingNotif] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
-  const [passwordSaved, setPasswordSaved] = useState(false);
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -68,7 +71,9 @@ export function ProfilePage() {
   };
 
   const handleSave = async () => {
-    await new Promise(r => setTimeout(r, 600));
+    setIsSavingGeneral(true);
+    await updateUser({ name, organization, role });
+    setIsSavingGeneral(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };
@@ -169,20 +174,24 @@ export function ProfilePage() {
                     <div>
                       <label className="block text-xs font-medium text-slate-400 mb-2">Full Name</label>
                       <input
-                        defaultValue={user.name}
+                        value={name}
+                        onChange={e => setName(e.target.value)}
                         className="w-full bg-[#111115] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500/60 transition-colors"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-slate-400 mb-2">Email Address</label>
                       <input
+                        readOnly
                         defaultValue={user.email}
-                        className="w-full bg-[#111115] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500/60 transition-colors"
+                        className="w-full bg-[#111115] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-slate-500 cursor-not-allowed focus:outline-none transition-colors"
                       />
                     </div>
                     <div className="sm:col-span-2">
                       <label className="block text-xs font-medium text-slate-400 mb-2">Organization (Optional)</label>
                       <input
+                        value={organization}
+                        onChange={e => setOrganization(e.target.value)}
                         placeholder="Your company name"
                         className="w-full bg-[#111115] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60 transition-colors"
                       />
@@ -211,14 +220,17 @@ export function ProfilePage() {
                     </p>
                     <button
                       onClick={handleSave}
+                      disabled={isSavingGeneral}
                       className={cn(
                         'flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all',
                         saved
                           ? 'bg-emerald-600 text-white'
-                          : 'bg-blue-600 hover:bg-blue-500 text-white'
+                          : isSavingGeneral
+                            ? 'bg-blue-600/50 text-white cursor-wait'
+                            : 'bg-blue-600 hover:bg-blue-500 text-white'
                       )}
                     >
-                      {saved ? <><CheckCircle size={15} /> Saved</> : 'Save Changes'}
+                      {saved ? <><CheckCircle size={15} /> Saved</> : isSavingGeneral ? 'Saving...' : 'Save Changes'}
                     </button>
                   </div>
                 </div>
@@ -377,13 +389,14 @@ export function ProfilePage() {
                   </p>
                   <button
                     onClick={async () => {
-                      await new Promise(r => setTimeout(r, 500));
-                      localStorage.setItem('contractcheck_notif_prefs', JSON.stringify(notif));
+                      setIsSavingNotif(true);
+                      await updateUser({ notificationPrefs: notif });
+                      setIsSavingNotif(false);
                       setNotifSaved(true);
                       setNotifDirty(false);
                       setTimeout(() => setNotifSaved(false), 2500);
                     }}
-                    disabled={!notifDirty && !notifSaved}
+                    disabled={!notifDirty && !notifSaved || isSavingNotif}
                     className={cn(
                       'flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all cursor-pointer',
                       notifSaved
@@ -393,7 +406,7 @@ export function ProfilePage() {
                           : 'bg-white/5 text-slate-600 cursor-not-allowed'
                     )}
                   >
-                    {notifSaved ? <><CheckCircle size={15} /> Preferences Saved</> : 'Save Preferences'}
+                    {notifSaved ? <><CheckCircle size={15} /> Preferences Saved</> : isSavingNotif ? 'Saving...' : 'Save Preferences'}
                   </button>
                 </div>
               </div>
@@ -498,14 +511,7 @@ export function ProfilePage() {
 
       {/* Change Password Modal */}
       {showChangePassword && (
-        <ChangePasswordModal
-          onClose={() => { setShowChangePassword(false); setPasswordSaved(false); }}
-          onSave={() => {
-            setPasswordSaved(true);
-            setTimeout(() => { setShowChangePassword(false); setPasswordSaved(false); }, 1500);
-          }}
-          passwordSaved={passwordSaved}
-        />
+        <ChangePasswordModal onClose={() => setShowChangePassword(false)} />
       )}
     </AppLayout>
   );
@@ -564,15 +570,35 @@ function NotifSection({
   );
 }
 
-function ChangePasswordModal({ onClose, onSave, passwordSaved }: { onClose: () => void; onSave: () => void; passwordSaved: boolean }) {
+import { supabase } from '../../lib/supabase';
+
+function ChangePasswordModal({ onClose }: { onClose: () => void }) {
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [current, setCurrent] = useState('');
   const [newPass, setNewPass] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
 
-  const isValid = current.length >= 1 && newPass.length >= 8 && newPass === confirm;
+  const isValid = newPass.length >= 8 && newPass === confirm;
+
+  const handleSave = async () => {
+    setError('');
+    setIsSaving(true);
+    const { error } = await supabase.auth.updateUser({ password: newPass });
+    setIsSaving(false);
+    
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    
+    setSaved(true);
+    setTimeout(() => onClose(), 1500);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -592,27 +618,7 @@ function ChangePasswordModal({ onClose, onSave, passwordSaved }: { onClose: () =
 
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-2">Current Password</label>
-            <div className="relative">
-              <input
-                type={showCurrent ? 'text' : 'password'}
-                value={current}
-                onChange={e => setCurrent(e.target.value)}
-                placeholder="Enter current password"
-                className="w-full bg-[#111115] border border-white/[0.08] rounded-xl px-4 py-3 pr-11 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60 transition-colors"
-              />
-              <button
-                type="button"
-                onClick={() => setShowCurrent(!showCurrent)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
-              >
-                {showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-2">New Password</label>
+            <label className="block text-xs font-medium text-slate-400 mb-2">New Password (Auth Provider handled)</label>
             <div className="relative">
               <input
                 type={showNew ? 'text' : 'password'}
@@ -624,7 +630,7 @@ function ChangePasswordModal({ onClose, onSave, passwordSaved }: { onClose: () =
               <button
                 type="button"
                 onClick={() => setShowNew(!showNew)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 cursor-pointer"
               >
                 {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
@@ -647,7 +653,7 @@ function ChangePasswordModal({ onClose, onSave, passwordSaved }: { onClose: () =
               <button
                 type="button"
                 onClick={() => setShowConfirm(!showConfirm)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 cursor-pointer"
               >
                 {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
@@ -658,26 +664,33 @@ function ChangePasswordModal({ onClose, onSave, passwordSaved }: { onClose: () =
           </div>
         </div>
 
+        {error && (
+          <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-400 flex items-start gap-2">
+            <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+            <p>{error}</p>
+          </div>
+        )}
+
         <div className="mt-6 pt-5 border-t border-white/[0.05] flex items-center justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl text-sm text-slate-400 hover:text-slate-200 transition-colors"
+            className="px-4 py-2.5 rounded-xl text-sm text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
-            onClick={onSave}
-            disabled={!isValid}
+            onClick={handleSave}
+            disabled={!isValid || isSaving || saved}
             className={cn(
-              'flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all',
-              passwordSaved
+              'flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all cursor-pointer',
+              saved
                 ? 'bg-emerald-600 text-white'
                 : isValid
                   ? 'bg-blue-600 hover:bg-blue-500 text-white'
                   : 'bg-white/5 text-slate-600 cursor-not-allowed'
             )}
           >
-            {passwordSaved ? <><CheckCircle size={15} /> Updated</> : 'Update Password'}
+            {saved ? <><CheckCircle size={15} /> Updated</> : isSaving ? 'Updating...' : 'Update Password'}
           </button>
         </div>
       </div>

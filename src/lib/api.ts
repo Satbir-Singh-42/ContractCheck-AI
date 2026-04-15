@@ -8,8 +8,6 @@ import type {
   PaymentCreateResponse,
 } from './schema';
 
-export const USE_MOCK = false;
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 async function getUserId() {
