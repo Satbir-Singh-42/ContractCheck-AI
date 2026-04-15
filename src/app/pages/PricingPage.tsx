@@ -1,0 +1,185 @@
+import React from 'react';
+import { Link, useNavigate } from 'react-router';
+import { CheckCircle, Zap, Building2, ArrowRight, Shield } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { cn } from '../../lib/utils';
+import { PublicNavbar } from '../components/PublicNavbar';
+
+const plans = [
+  {
+    name: 'Free',
+    price: '₹0',
+    period: 'forever',
+    description: 'Perfect for trying out the platform.',
+    icon: Shield,
+    color: 'slate',
+    features: [
+      '3 contract analyses/month',
+      'Basic clause detection',
+      'DPDP & GST checks',
+      'Risk color coding',
+      'Email support',
+    ],
+    cta: 'Get Started Free',
+    popular: false,
+  },
+  {
+    name: 'Pro',
+    price: '₹999',
+    period: 'per month',
+    description: 'For freelancers and small businesses.',
+    icon: Zap,
+    color: 'blue',
+    features: [
+      '50 contract analyses/month',
+      'All regulations: DPDP, GST, Labour, Contract Act',
+      'AI-powered fix suggestions',
+      'PDF export & shareable links',
+      'Priority support',
+      'Clause history & versioning',
+    ],
+    cta: 'Start Pro Plan',
+    popular: true,
+  },
+  {
+    name: 'Enterprise',
+    price: 'Custom',
+    period: 'per year',
+    description: 'For law firms and large organizations.',
+    icon: Building2,
+    color: 'purple',
+    features: [
+      'Unlimited analyses',
+      'Custom regulation sets',
+      'API access',
+      'Team collaboration',
+      'Dedicated account manager',
+      'SLA & data residency',
+    ],
+    cta: 'Contact Sales',
+    popular: false,
+  },
+];
+
+const colorMap: Record<string, { border: string; bg: string; text: string; btn: string; badge: string }> = {
+  slate: {
+    border: 'border-white/[0.07]',
+    bg: 'bg-[#0B0B0E]',
+    text: 'text-slate-300',
+    btn: 'bg-white/10 hover:bg-white/15 text-white',
+    badge: '',
+  },
+  blue: {
+    border: 'border-blue-500/40',
+    bg: 'bg-[#0C0F1A]',
+    text: 'text-blue-300',
+    btn: 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_30px_-5px_rgba(37,99,235,0.5)]',
+    badge: 'Most Popular',
+  },
+  purple: {
+    border: 'border-purple-500/30',
+    bg: 'bg-[#0D0B14]',
+    text: 'text-purple-300',
+    btn: 'bg-purple-600 hover:bg-purple-500 text-white',
+    badge: '',
+  },
+};
+
+export function PricingPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleCta = (plan: string) => {
+    if (plan === 'Free') {
+      navigate(user ? '/upload' : '/signup');
+    } else if (plan === 'Pro') {
+      navigate(user ? '/payment' : '/signup');
+    } else {
+      // Contact sales
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#060608] text-white">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-blue-600/8 blur-[120px] pointer-events-none" />
+
+      <PublicNavbar />
+
+      <div className="relative max-w-[1100px] mx-auto px-4 sm:px-6 py-20">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+            Simple, Transparent Pricing
+          </h1>
+          <p className="text-lg text-slate-400 max-w-[500px] mx-auto">
+            Start free. Scale as your compliance needs grow. Cancel anytime.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          {plans.map((plan) => {
+            const c = colorMap[plan.color];
+            const Icon = plan.icon;
+            return (
+              <div
+                key={plan.name}
+                className={cn(
+                  'relative rounded-2xl border p-8 flex flex-col',
+                  c.border, c.bg,
+                  plan.popular && 'md:-translate-y-4 shadow-[0_0_60px_-10px_rgba(37,99,235,0.2)]'
+                )}
+              >
+                {c.badge && (
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-blue-600 text-xs font-bold text-white">
+                    {c.badge}
+                  </div>
+                )}
+
+                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-4', `bg-${plan.color}-500/10`)}>
+                  <Icon size={20} className={c.text} />
+                </div>
+
+                <h3 className="text-lg font-bold mb-1">{plan.name}</h3>
+                <p className="text-sm text-slate-500 mb-4">{plan.description}</p>
+
+                <div className="mb-6">
+                  <span className="text-4xl font-bold">{plan.price}</span>
+                  <span className="text-sm text-slate-500 ml-2">/{plan.period}</span>
+                </div>
+
+                <ul className="space-y-3 mb-8 flex-1">
+                  {plan.features.map((f, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-sm text-slate-300">
+                      <CheckCircle size={15} className={cn('mt-0.5 shrink-0', c.text)} />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  onClick={() => handleCta(plan.name)}
+                  className={cn('w-full py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 text-sm', c.btn)}
+                >
+                  {plan.cta} <ArrowRight size={15} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* FAQ Row */}
+        <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+          {[
+            { q: 'Is my data secure?', a: 'All documents are processed in-memory and never stored permanently without your permission.' },
+            { q: 'Can I upgrade later?', a: 'Yes. Upgrade or downgrade at any time. Billing is prorated automatically.' },
+            { q: 'What regulations are covered?', a: 'DPDP Act 2023, GST/CGST Act, Indian Contract Act 1872, and Labour Laws.' },
+          ].map(({ q, a }, i) => (
+            <div key={i} className="text-left">
+              <p className="font-semibold text-white mb-2">{q}</p>
+              <p className="text-sm text-slate-400 leading-relaxed">{a}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
