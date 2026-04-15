@@ -34,7 +34,7 @@ export async function apiUpdateProfile(data: { name?: string; email?: string }) 
 
 // ─── Reports ──────────────────────────────────────────────────────────────────
 
-export async function apiUploadContract(file: File): Promise<UploadResponse> {
+export async function apiUploadContract(file: File, parentReportId?: string, versionNumber: number = 1): Promise<UploadResponse> {
   const userId = await getUserId();
   const fileExt = file.name.split('.').pop()?.toLowerCase() || 'txt';
   const filePath = `${userId}/${Date.now()}_original.${fileExt}`;
@@ -49,7 +49,9 @@ export async function apiUploadContract(file: File): Promise<UploadResponse> {
     file_name: file.name,
     file_type: fileExt,
     file_size_bytes: file.size,
-    status: 'processing'
+    status: 'processing',
+    parent_report_id: parentReportId || null,
+    version_number: versionNumber
   }).select('id').single();
 
   if (dbError) throw new Error(`DB error: ${dbError.message}`);
@@ -62,6 +64,26 @@ export async function apiUploadContract(file: File): Promise<UploadResponse> {
     status: 'processing',
     estimated_seconds: 45, // Time for AI to finish
   };
+}
+
+export interface ReportVersion {
+  id: string;
+  version_number: number;
+  created_at: string;
+}
+
+export async function apiGetReportVersions(rootId: string): Promise<ReportVersion[]> {
+  const { data, error } = await supabase
+    .from('reports')
+    .select('id, version_number, created_at')
+    .or(`id.eq.${rootId},parent_report_id.eq.${rootId}`)
+    .order('version_number', { ascending: true });
+
+  if (error) {
+    console.warn('Failed to fetch report versions', error);
+    return [];
+  }
+  return data || [];
 }
 
 export async function apiGetReports(page = 1, perPage = 10): Promise<ReportListResponse> {

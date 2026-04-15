@@ -28,6 +28,8 @@ export interface DBReport {
   error_message: string | null;
   created_at: string;
   completed_at: string | null;
+  parent_report_id?: string | null;
+  version_number?: number;
 }
 
 export interface DBClause {

@@ -81,6 +81,7 @@ export function DashboardPage() {
   const location = useLocation();
   const [reports, setReports] = useState<DBReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = React.useState('');
 
   const usedCount = loading ? (user?.uploadsUsed || 0) : reports.length;
@@ -89,15 +90,19 @@ export function DashboardPage() {
   useEffect(() => {
     if (!user) return; // Wait until authentication completes
     setLoading(true);
+    setErrorMsg(null);
     apiGetReports()
       .then(res => { setReports(res.reports); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch((err) => { 
+         setErrorMsg(err instanceof Error ? err.message : String(err)); 
+         setLoading(false); 
+      });
   }, [user, location.key]);
 
   const filteredReports = reports.filter(r =>
-    r.file_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    r.contract_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    r.parties.toLowerCase().includes(searchQuery.toLowerCase())
+    r.file_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    r.contract_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    r.parties?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const highRiskCount = reports.filter(r => r.overall_risk === 'High').length;
@@ -179,10 +184,16 @@ export function DashboardPage() {
           </div>
         )}
 
-        {/* Reports List */}
-        <div>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-            <h2 className="text-lg font-semibold">Recent Reports</h2>
+        {/* Content Area */}
+        <div className="bg-[#0B0B0E] border border-white/[0.06] rounded-2xl p-6 relative min-h-[400px]">
+          {errorMsg && (
+            <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-500 text-sm">
+              API Error: {errorMsg}
+            </div>
+          )}
+          
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <h2 className="text-lg font-bold text-white">Recent Reports</h2>
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />

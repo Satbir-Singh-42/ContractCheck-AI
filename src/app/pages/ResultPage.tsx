@@ -3,12 +3,13 @@ import { useParams, useNavigate } from 'react-router';
 import {
   AlertTriangle, CheckCircle, XCircle, ChevronDown,
   Download, Share2, ArrowLeft, FileText, BookOpen, Lightbulb,
-  Shield, Check, Loader2,
+  Shield, Check, Loader2, Upload
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { jsPDF, GState } from 'jspdf';
 import { AppLayout } from '../components/AppLayout';
-import { apiGetReport, apiShareReport } from '../../lib/api';
+import { apiGetReport, apiShareReport, apiGetReportVersions, apiUploadContract, type ReportVersion } from '../../lib/api';
+import { useAuth } from '../context/AuthContext';
 import type { ReportResponse } from '../../lib/schema';
 import { cn } from '../../lib/utils';
 
@@ -257,6 +258,7 @@ const FILTER_TABS: { key: FilterTab; label: string; color: string }[] = [
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export function ResultPage() {
+  const { user } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [report, setReport] = useState<Report | null>(null);
@@ -265,16 +267,35 @@ export function ResultPage() {
   const [copied, setCopied] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
+  const [versions, setVersions] = useState<ReportVersion[]>([]);
+  const revisionInputRef = React.useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (!id) { setNotFound(true); setLoading(false); return; }
-    apiGetReport(id)
-      .then(res => {
-        if (!res) { setNotFound(true); }
-        else { setReport(mapApiToReport(res)); }
+    
+    async function fetchReportAndVersions() {
+      try {
+        const res = await apiGetReport(id!);
+        if (!res) {
+          setNotFound(true);
+        } else {
+          setReport(mapApiToReport(res));
+          // If the DB has `parent_report_id` natively, it would be mapped. Since we only mapped simple fields, 
+          // let's assume `apiGetReportVersions` just searches where `id` or `parent_report_id` matches.
+          // In the API we select parent_report_id natively for `UploadContract`, but wait...
+          // We can just rely on `apiGetReportVersions(id)` and it'll pull the tree because it OR matches.
+          const rootId = res.report.parent_report_id || res.report.id;
+          const vList = await apiGetReportVersions(rootId);
+          setVersions(vList);
+        }
+      } catch (e) {
+        setNotFound(true);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => { setNotFound(true); setLoading(false); });
+      }
+    }
+    fetchReportAndVersions();
   }, [id]);
 
   if (loading) {
@@ -763,6 +784,73 @@ export function ResultPage() {
             <ArrowLeft size={16} /> Back to Dashboard
           </button>
           <div className="flex items-center gap-3">
+            
+            {/* Version Selection Dropdown */}
+            {versions.length > 1 && (
+              <div className="relative group z-20">
+                <button className="flex items-center gap-2 text-sm text-slate-300 bg-white/[0.04] border border-white/10 hover:bg-white/[0.08] px-4 py-2 rounded-xl transition-colors whitespace-nowrap cursor-pointer">
+                  V{versions.find(v => v.id === id)?.version_number || 1} <ChevronDown size={15} />
+                </button>
+                <div className="absolute top-full right-0 mt-2 w-48 bg-[#111115] border border-white/10 rounded-xl shadow-xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                  {versions.map(v => (
+                    <button
+                      key={v.id}
+                      onClick={() => navigate(`/result/${v.id}`)}
+                      className={cn(
+                        "w-full text-left px-4 py-3 text-sm hover:bg-white/[0.04] transition-colors flex items-center justify-between cursor-pointer",
+                        v.id === id ? "text-blue-400 font-semibold bg-white/[0.02]" : "text-slate-300"
+                      )}
+                    >
+                      <span>Version {v.version_number}</span>
+                      {v.id === id && <Check size={14} className="text-blue-400" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Hidden File Input for Revision Upload */}
+            <input 
+              type="file" 
+              ref={revisionInputRef} 
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file || !report) return;
+                setIsUploading(true);
+                try {
+                  const rootId = versions.length > 0 ? (versions[0].id) : report.id;
+                  const nextV = versions.length > 0 ? Math.max(...versions.map(v => v.version_number)) + 1 : 2;
+                  const res = await apiUploadContract(file, rootId, nextV);
+                  // Brief pause for aesthetics, then navigate to process
+                  await new Promise(r => setTimeout(r, 600));
+                  navigate(`/process/${res.report_id}`);
+                } catch (err) {
+                  alert("Failed to upload revision: " + (err instanceof Error ? err.message : String(err)));
+                  setIsUploading(false);
+                }
+              }} 
+              className="hidden" 
+              accept=".pdf,.docx,.txt"
+            />
+
+            {/* Pro Gate: Upload Revision */}
+            {user?.plan === 'pro' ? (
+              <button
+                onClick={() => revisionInputRef.current?.click()}
+                disabled={isUploading}
+                className="flex items-center gap-2 text-sm text-slate-400 hover:text-white border border-white/10 hover:border-white/20 px-4 py-2 rounded-xl transition-colors cursor-pointer whitespace-nowrap disabled:opacity-50"
+              >
+                {isUploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />} Upload Revision
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate('/pricing')}
+                className="flex items-center gap-2 text-sm text-amber-500/80 hover:text-amber-400 border border-amber-500/10 bg-amber-500/[0.04] hover:bg-amber-500/[0.08] hover:border-amber-500/20 px-4 py-2 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
+              >
+                <Shield size={14} /> Pro Versioning
+              </button>
+            )}
+
             <button
               onClick={handleDownload}
               className="flex items-center gap-2 text-sm text-slate-400 hover:text-white border border-white/10 hover:border-white/20 px-4 py-2 rounded-xl transition-colors cursor-pointer whitespace-nowrap"

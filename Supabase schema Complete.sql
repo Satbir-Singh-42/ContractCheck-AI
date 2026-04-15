@@ -47,6 +47,8 @@ CREATE TABLE public.reports (
     
     -- Added for public sharing feature
     is_shared BOOLEAN DEFAULT false,
+    parent_report_id UUID REFERENCES reports(id) ON DELETE CASCADE,
+    version_number INTEGER DEFAULT 1,
     
     created_at TIMESTAMPTZ DEFAULT NOW(),
     completed_at TIMESTAMPTZ
