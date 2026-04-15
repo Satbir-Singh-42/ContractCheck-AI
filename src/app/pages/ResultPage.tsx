@@ -125,7 +125,7 @@ const RISK_CONFIG: Record<RiskLevel, {
 
 function ClauseCard({ clause, index }: { clause: Clause; index: number }) {
   const [expanded, setExpanded] = useState(false);
-  const cfg = RISK_CONFIG[clause.riskLevel];
+  const cfg = RISK_CONFIG[clause.riskLevel] || RISK_CONFIG.Safe;
   const Icon = cfg.icon;
 
   return (
@@ -308,7 +308,7 @@ export function ResultPage() {
   const bad = report.clauses.filter(c => c.riskLevel === 'Non-compliant').length;
   const total = report.clauses.length;
   const score = Math.max(0, Math.round(100 - (bad * 25) - (risky * 10)));
-  const ocfg = OVERALL_CONFIG[report.overallRisk];
+  const ocfg = OVERALL_CONFIG[report.overallRisk] || OVERALL_CONFIG.Medium;
 
   const filteredClauses = activeFilter === 'all'
     ? report.clauses

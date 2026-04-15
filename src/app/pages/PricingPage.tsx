@@ -123,7 +123,7 @@ export function PricingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
           {plans.map((plan) => {
-            const c = colorMap[plan.color];
+            const c = colorMap[plan.color] || colorMap.slate;
             const Icon = plan.icon;
             return (
               <div
