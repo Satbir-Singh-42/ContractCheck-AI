@@ -4,12 +4,18 @@ import { Shield, Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export function SignupPage() {
-  const { signup } = useAuth();
+  const { signup, user, isLoading } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  React.useEffect(() => {
+    if (user && !isLoading) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, isLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router';
-import { Shield, Menu, X } from 'lucide-react';
+import { Shield, Menu, X, ArrowRight } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { useAuth } from '../context/AuthContext';
 
 function BrandLogo({ size = 24 }: { size?: number }) {
   return (
@@ -24,6 +25,7 @@ export function PublicNavbar() {
   const [scrolled, setScrolled] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const location = useLocation();
+  const { user } = useAuth();
 
   React.useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -70,12 +72,20 @@ export function PublicNavbar() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link to="/login" className="hidden sm:block text-sm font-medium text-slate-300 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/5">
-            Sign in
-          </Link>
-          <Link to="/signup" className="hidden sm:inline-flex bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-full text-sm font-semibold transition-all shadow-[0_0_20px_-5px_rgba(37,99,235,0.5)] hover:shadow-[0_0_30px_-5px_rgba(37,99,235,0.7)]">
-            Get Started Free
-          </Link>
+          {user ? (
+            <Link to="/dashboard" className="hidden sm:inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-[0_0_20px_-5px_rgba(37,99,235,0.5)]">
+              Dashboard <ArrowRight size={16} />
+            </Link>
+          ) : (
+            <>
+              <Link to="/login" className="hidden sm:block text-sm font-medium text-slate-300 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/5">
+                Sign in
+              </Link>
+              <Link to="/signup" className="hidden sm:inline-flex bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-[0_0_20px_-5px_rgba(37,99,235,0.5)]">
+                Get Started Free
+              </Link>
+            </>
+          )}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="md:hidden p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
@@ -105,12 +115,20 @@ export function PublicNavbar() {
               </Link>
             ))}
             <div className="border-t border-white/[0.06] mt-2 pt-3 flex flex-col gap-2">
-              <Link to="/login" className="text-sm font-medium text-slate-300 hover:text-white transition-colors px-4 py-3 rounded-lg hover:bg-white/5">
-                Sign in
-              </Link>
-              <Link to="/signup" className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-full text-sm font-semibold transition-all text-center shadow-[0_0_20px_-5px_rgba(37,99,235,0.5)]">
-                Get Started Free
-              </Link>
+              {user ? (
+                <Link to="/dashboard" className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-full text-sm font-semibold transition-all text-center flex items-center justify-center gap-2">
+                  Go to Dashboard <ArrowRight size={16} />
+                </Link>
+              ) : (
+                <>
+                  <Link to="/login" className="text-sm font-medium text-slate-300 hover:text-white transition-colors px-4 py-3 rounded-lg hover:bg-white/5">
+                    Sign in
+                  </Link>
+                  <Link to="/signup" className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-full text-sm font-semibold transition-all text-center">
+                    Get Started Free
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

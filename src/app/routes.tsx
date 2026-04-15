@@ -37,13 +37,12 @@ function RootLayout() {
   return (
     <AuthProvider>
       <ScrollToTop />
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         <motion.div
           key={location.pathname}
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
           className="min-h-screen flex flex-col w-full"
         >
           <Outlet />

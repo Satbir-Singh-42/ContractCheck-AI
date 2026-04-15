@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router';
 import {
-  CheckCircle, AlertTriangle, XCircle, ChevronDown, Shield,
-  FileText, Lightbulb, BookOpen, Download, ExternalLink, Loader2,
+  AlertTriangle, CheckCircle, XCircle, ChevronDown,
+  Download, ExternalLink, Shield, BookOpen, Lightbulb, FileText, Loader2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { jsPDF } from 'jspdf';
 import { apiGetReport } from '../../lib/api';
 import type { ReportResponse } from '../../lib/schema';
 import { cn } from '../../lib/utils';
 
-// ─── Local UI Types ───────────────────────────────────────────────────
+// ─── Local UI Types (mapped from API schema) ──────────────────────────────────
 
 type RiskLevel = 'Safe' | 'Risky' | 'Non-compliant';
 
@@ -30,6 +31,7 @@ interface Report {
   parties: string;
   overallRisk: 'High' | 'Medium' | 'Low';
   date: string;
+  status: string;
   clauses: Clause[];
 }
 
@@ -41,6 +43,7 @@ function mapApiToReport(data: ReportResponse): Report {
     parties: data.report.parties,
     overallRisk: data.report.overall_risk,
     date: data.report.created_at?.slice(0, 10) || '',
+    status: data.report.status,
     clauses: data.clauses.map(c => ({
       id: c.id,
       title: c.title,
@@ -62,7 +65,7 @@ function ScoreRing({ score, risk }: { score: number; risk: string }) {
   const color = risk === 'High' ? '#ef4444' : risk === 'Medium' ? '#f59e0b' : '#10b981';
 
   return (
-    <div className="relative w-36 h-36">
+    <div className="relative w-36 h-36 shrink-0">
       <svg className="w-full h-full -rotate-90" viewBox="0 0 128 128">
         <circle cx="64" cy="64" r={radius} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
         <motion.circle
@@ -94,41 +97,27 @@ function ScoreRing({ score, risk }: { score: number; risk: string }) {
 const RISK_CONFIG: Record<RiskLevel, {
   label: string;
   icon: React.FC<{ size?: number; className?: string }>;
-  color: string; textColor: string; bg: string; border: string;
+  color: string; textColor: string; bg: string; border: string; ringColor: string;
 }> = {
   Safe: {
     label: 'Safe', icon: CheckCircle,
     color: 'text-emerald-400', textColor: 'text-emerald-300',
     bg: 'bg-emerald-500/[0.06]', border: 'border-emerald-500/20',
+    ringColor: 'ring-emerald-500/30',
   },
   Risky: {
     label: 'Risky', icon: AlertTriangle,
     color: 'text-amber-400', textColor: 'text-amber-300',
     bg: 'bg-amber-500/[0.06]', border: 'border-amber-500/20',
+    ringColor: 'ring-amber-500/30',
   },
   'Non-compliant': {
     label: 'Non-compliant', icon: XCircle,
     color: 'text-red-400', textColor: 'text-red-300',
     bg: 'bg-red-500/[0.06]', border: 'border-red-500/20',
+    ringColor: 'ring-red-500/30',
   },
 };
-
-const OVERALL_CONFIG: Record<string, { color: string; bg: string; border: string; label: string }> = {
-  High: { color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20', label: 'High Risk' },
-  Medium: { color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', label: 'Medium Risk' },
-  Low: { color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', label: 'Low Risk' },
-};
-
-// ─── Section Label ────────────────────────────────────────────────────────────
-
-function SectionLabel({ icon: Icon, label, color }: { icon: React.FC<{ size?: number; className?: string }>; label: string; color: string }) {
-  return (
-    <div className="flex items-center gap-1.5 mb-2.5">
-      <Icon size={13} className={color} />
-      <span className={cn('text-xs font-semibold uppercase tracking-wider', color)}>{label}</span>
-    </div>
-  );
-}
 
 // ─── Clause Card ──────────────────────────────────────────────────────────────
 
@@ -180,6 +169,7 @@ function ClauseCard({ clause, index }: { clause: Clause; index: number }) {
             className="overflow-hidden"
           >
             <div className="px-5 pb-5 space-y-4 border-t border-white/[0.05] pt-4">
+              {/* Original Text */}
               <div>
                 <SectionLabel icon={FileText} label="Original Clause" color="text-slate-400" />
                 <div className="bg-white/[0.03] rounded-xl px-4 py-3 border border-white/[0.06]">
@@ -189,6 +179,7 @@ function ClauseCard({ clause, index }: { clause: Clause; index: number }) {
                 </div>
               </div>
 
+              {/* Issues */}
               {clause.issues.length > 0 && (
                 <div>
                   <SectionLabel icon={AlertTriangle} label={`${clause.issues.length} Issue${clause.issues.length > 1 ? 's' : ''} Found`} color="text-red-400" />
@@ -203,6 +194,7 @@ function ClauseCard({ clause, index }: { clause: Clause; index: number }) {
                 </div>
               )}
 
+              {/* Suggestions */}
               {clause.suggestions.length > 0 && (
                 <div>
                   <SectionLabel icon={Lightbulb} label="AI Recommendations" color="text-blue-400" />
@@ -219,6 +211,7 @@ function ClauseCard({ clause, index }: { clause: Clause; index: number }) {
                 </div>
               )}
 
+              {/* Law Reference */}
               <div className="flex items-center gap-2 pt-1 px-1">
                 <BookOpen size={13} className="text-slate-600" />
                 <span className="text-xs text-slate-500">Reference: {clause.relevantLaw}</span>
@@ -231,16 +224,92 @@ function ClauseCard({ clause, index }: { clause: Clause; index: number }) {
   );
 }
 
-// ─── Share Page ────────────────────────────────────────────────────────────────
+function SectionLabel({ icon: Icon, label, color }: { icon: React.FC<{ size?: number; className?: string }>; label: string; color: string }) {
+  return (
+    <div className="flex items-center gap-1.5 mb-2.5">
+      <Icon size={13} className={color} />
+      <span className={cn('text-xs font-semibold uppercase tracking-wider', color)}>{label}</span>
+    </div>
+  );
+}
+
+// ─── Overall Risk Config ──────────────────────────────────────────────────────
+
+const OVERALL_CONFIG: Record<string, { color: string; bg: string; border: string; label: string; gradient: string }> = {
+  High: { color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20', label: 'High Risk', gradient: 'from-red-500/10 to-red-500/[0.02]' },
+  Medium: { color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', label: 'Medium Risk', gradient: 'from-amber-500/10 to-amber-500/[0.02]' },
+  Low: { color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', label: 'Low Risk', gradient: 'from-emerald-500/10 to-emerald-500/[0.02]' },
+};
+
+// ─── Filter Tabs ──────────────────────────────────────────────────────────────
+
+type FilterTab = 'all' | 'Safe' | 'Risky' | 'Non-compliant';
+
+const FILTER_TABS: { key: FilterTab; label: string; color: string }[] = [
+  { key: 'all', label: 'All Clauses', color: 'text-white' },
+  { key: 'Non-compliant', label: 'Non-compliant', color: 'text-red-400' },
+  { key: 'Risky', label: 'Risky', color: 'text-amber-400' },
+  { key: 'Safe', label: 'Safe', color: 'text-emerald-400' },
+];
+
+const MOCK_SAMPLE_REPORT: Report = {
+  id: 'rep_12345',
+  name: 'Non-Disclosure Agreement (Standard)',
+  type: 'NDA',
+  parties: 'TechCorp India Pvt Ltd & VendorCorp Technologies',
+  overallRisk: 'Medium',
+  date: new Date().toISOString().slice(0, 10),
+  status: 'Completed',
+  clauses: [
+    {
+      id: 'c1',
+      title: 'Data Fiduciary Obligations (DPDP Act)',
+      originalText: 'The receiving party may process personal data without explicit consent if deemed necessary for business operations.',
+      riskLevel: 'Non-compliant',
+      issues: ['Violates Section 6 of DPDP Act 2023 requiring explicit, unbundled consent for personal data processing.'],
+      suggestions: ['Rewrite to explicitly require clear, affirmative consent before processing any personal data obtained during the NDA term.'],
+      relevantLaw: 'Digital Personal Data Protection Act, 2023'
+    },
+    {
+      id: 'c2',
+      title: 'Dispute Resolution & Jurisdiction',
+      originalText: 'Any disputes arising out of this agreement shall be solely subject to the jurisdiction of the courts of Delaware, USA.',
+      riskLevel: 'Risky',
+      issues: ['As both parties are Indian entities, foreign jurisdiction clauses may be unenforceable and extremely costly to dispute.'],
+      suggestions: ['Amend jurisdiction to a local Indian court (e.g., New Delhi or Mumbai) or stipulate arbitration under the Arbitration and Conciliation Act, 1996.'],
+      relevantLaw: 'Indian Contract Act 1872 & Arbitration Act 1996'
+    },
+    {
+      id: 'c3',
+      title: 'Term & Termination',
+      originalText: 'This agreement shall remain in effect indefinitely from the date of signing.',
+      riskLevel: 'Safe',
+      issues: [],
+      suggestions: ['While legally safe for trade secrets, consider adding a finite term (e.g., 3-5 years) for general confidential information.'],
+      relevantLaw: 'Standard Industry Practice'
+    }
+  ]
+};
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export function SharePage() {
   const { reportId } = useParams();
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
 
   useEffect(() => {
     if (!reportId) { setNotFound(true); setLoading(false); return; }
+    
+    // Intercept Demo ID from landing page
+    if (reportId === 'rep_12345') {
+      setReport(MOCK_SAMPLE_REPORT);
+      setLoading(false);
+      return;
+    }
+
     apiGetReport(reportId)
       .then(res => {
         if (!res) { setNotFound(true); }
@@ -252,7 +321,7 @@ export function SharePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#060608] flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen bg-[#060608]">
         <Loader2 size={32} className="text-blue-500 animate-spin" />
       </div>
     );
@@ -260,13 +329,13 @@ export function SharePage() {
 
   if (notFound || !report) {
     return (
-      <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30 flex flex-col items-center justify-center text-center px-4">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#060608] text-white text-center px-4">
         <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5">
           <XCircle size={28} className="text-red-400" />
         </div>
         <h2 className="text-xl font-bold mb-2">Report Not Found</h2>
         <p className="text-slate-400 mb-6 max-w-sm">This shared report may have expired or doesn't exist.</p>
-        <Link to="/" className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm">
+        <Link to="/" className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm cursor-pointer">
           Go Home
         </Link>
       </div>
@@ -278,189 +347,674 @@ export function SharePage() {
   const bad = report.clauses.filter(c => c.riskLevel === 'Non-compliant').length;
   const total = report.clauses.length;
   const score = Math.max(0, Math.round(100 - (bad * 25) - (risky * 10)));
-  const ocfg = OVERALL_CONFIG[report.overallRisk] || OVERALL_CONFIG['High'];
+  const ocfg = OVERALL_CONFIG[report.overallRisk];
+
+  const filteredClauses = activeFilter === 'all'
+    ? report.clauses
+    : report.clauses.filter(c => c.riskLevel === activeFilter);
+
   const totalIssues = report.clauses.reduce((sum, c) => sum + c.issues.length, 0);
+  const totalSuggestions = report.clauses.reduce((sum, c) => sum + c.suggestions.length, 0);
+
+  const handleDownload = () => {
+    const doc = new jsPDF();
+    const pw = doc.internal.pageSize.getWidth();
+    const ph = doc.internal.pageSize.getHeight();
+    const m = 20; 
+    const cw = pw - m * 2;
+    let y = 0;
+    let pageNum = 1;
+
+    const C = {
+      bg: [255, 255, 255] as [number, number, number],
+      headerBg: [10, 15, 25] as [number, number, number],
+      headerAccent: [37, 99, 235] as [number, number, number],
+      title: [15, 23, 42] as [number, number, number],
+      body: [51, 65, 85] as [number, number, number],
+      muted: [100, 116, 139] as [number, number, number],
+      light: [226, 232, 240] as [number, number, number],
+      divider: [241, 245, 249] as [number, number, number],
+      
+      safe: [16, 185, 129] as [number, number, number],
+      risky: [245, 158, 11] as [number, number, number],
+      bad: [239, 68, 68] as [number, number, number],
+      white: [255, 255, 255] as [number, number, number],
+      
+      safeLight: [236, 253, 245] as [number, number, number],
+      riskyLight: [255, 251, 235] as [number, number, number],
+      badLight: [254, 242, 242] as [number, number, number],
+      blueFill: [239, 246, 255] as [number, number, number],
+    };
+
+    const riskColor = (level: string): [number, number, number] =>
+      level === 'Safe' ? C.safe : level === 'Risky' ? C.risky : C.bad;
+      
+    const riskLightColor = (level: string): [number, number, number] =>
+      level === 'Safe' ? C.safeLight : level === 'Risky' ? C.riskyLight : C.badLight;
+
+    const overallColor = report.overallRisk === 'High' ? C.bad : report.overallRisk === 'Medium' ? C.risky : C.safe;
+
+    function addPageFooter() {
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...C.muted);
+      doc.text(`ContractCheck AI \u2022 Compliance Intelligence Report`, m, ph - 12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Page ${pageNum}`, pw - m, ph - 12, { align: 'right' });
+      doc.setDrawColor(...C.light);
+      doc.setLineWidth(0.5);
+      doc.line(m, ph - 18, pw - m, ph - 18);
+    }
+
+    function newPage() {
+      addPageFooter();
+      doc.addPage();
+      pageNum++;
+      y = m;
+    }
+
+    function ensureSpace(needed: number) {
+      if (y + needed > ph - 25) newPage();
+    }
+
+    // Header
+    const headerH = 65;
+    doc.setFillColor(...C.headerBg);
+    doc.rect(0, 0, pw, headerH, 'F');
+    doc.setFillColor(...C.headerAccent);
+    doc.rect(0, headerH - 2, pw, 2, 'F');
+
+    doc.setFontSize(26);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...C.white);
+    doc.text('ContractCheck AI', m, 26);
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(148, 163, 184); 
+    doc.text('COMPLIANCE INTELLIGENCE REPORT', m, 36);
+
+    const genDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Ref: ${report.id.substring(0,8)}  |  Generated on ${genDate}`, m, 48);
+
+    const scoreR = 17;
+    const scoreCx = pw - m - scoreR;
+    const scoreCy = 30;
+    
+    doc.setDrawColor(...overallColor);
+    doc.setLineWidth(2);
+    doc.circle(scoreCx, scoreCy, scoreR, 'S');
+
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...C.white);
+    doc.text(String(score), scoreCx, scoreCy + 2, { align: 'center' });
+    
+    doc.setFontSize(6.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...overallColor);
+    doc.text(OVERALL_CONFIG[report.overallRisk].label.toUpperCase(), scoreCx, scoreCy + scoreR + 6, { align: 'center' });
+
+    y = headerH + 20;
+
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...C.title);
+    doc.text(report.name, m, y);
+    y += 10;
+
+    const infoBoxW = (cw - 8) / 2;
+    const drawInfoPanel = (x: number, yPos: number, title: string, val: string) => {
+        doc.setFillColor(248, 250, 252); 
+        doc.setDrawColor(...C.divider);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(x, yPos, infoBoxW, 14, 2, 2, 'FD');
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...C.muted);
+        doc.text(title.toUpperCase(), x + 4, yPos + 5.5);
+        doc.setFontSize(9);
+        doc.setTextColor(...C.title);
+        doc.text(val, x + 4, yPos + 11);
+    };
+
+    drawInfoPanel(m, y, 'Document Type', report.type);
+    drawInfoPanel(m + infoBoxW + 8, y, 'Parties Involved', report.parties);
+    y += 18;
+    
+    const dateStr = new Date(report.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    drawInfoPanel(m, y, 'Analysis Date', dateStr);
+    drawInfoPanel(m + infoBoxW + 8, y, 'Current Status', report.status);
+    y += 24;
+
+    const boxW = (cw - 12) / 3;
+    const boxH = 22;
+    const statsData: { label: string; count: number; color: [number, number, number], lightCol: [number, number, number] }[] = [
+      { label: 'Safe Clauses', count: safe, color: C.safe, lightCol: C.safeLight },
+      { label: 'Risky Clauses', count: risky, color: C.risky, lightCol: C.riskyLight },
+      { label: 'Non-compliant', count: bad, color: C.bad, lightCol: C.badLight },
+    ];
+
+    statsData.forEach(({ label, count, color, lightCol }, i) => {
+      const bx = m + i * (boxW + 6);
+      
+      doc.setFillColor(...lightCol);
+      doc.setDrawColor(...color);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(bx, y, boxW, boxH, 2, 2, 'FD');
+
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...color);
+      doc.text(String(count), bx + boxW / 2, y + 13, { align: 'center' });
+      
+      doc.setFontSize(7.5);
+      doc.text(label.toUpperCase(), bx + boxW / 2, y + 18, { align: 'center' });
+    });
+    y += boxH + 12;
+
+    const barH = 5;
+    doc.setFillColor(...C.light);
+    doc.roundedRect(m, y, cw, barH, 2.5, 2.5, 'F');
+    const safePctPdf = total > 0 ? (safe / total) : 0;
+    const riskyPctPdf = total > 0 ? (risky / total) : 0;
+    const badPctPdf = total > 0 ? (bad / total) : 0;
+    
+    let barX = m;
+    if (safePctPdf > 0) {
+      doc.setFillColor(...C.safe);
+      doc.roundedRect(barX, y, cw * safePctPdf, barH, 2.5, 2.5, 'F');
+      barX += cw * safePctPdf;
+    }
+    if (riskyPctPdf > 0) {
+      doc.setFillColor(...C.risky);
+      doc.rect(barX, y, cw * riskyPctPdf, barH, 'F');
+      barX += cw * riskyPctPdf;
+    }
+    if (badPctPdf > 0) {
+      doc.setFillColor(...C.bad);
+      doc.roundedRect(barX, y, cw * badPctPdf, barH, 0, 2.5, 'F');
+    }
+    y += barH + 20;
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...C.title);
+    doc.text('Clause Analysis', m, y);
+    
+    y += 4;
+    doc.setDrawColor(...C.headerAccent);
+    doc.setLineWidth(1.5);
+    doc.line(m, y, m + 30, y);
+    doc.setDrawColor(...C.light);
+    doc.setLineWidth(0.5);
+    doc.line(m + 30, y, pw - m, y);
+    y += 12;
+
+    report.clauses.forEach((clause, idx) => {
+      const rc = riskColor(clause.riskLevel);
+      const rl = riskLightColor(clause.riskLevel);
+      const hasIssues = clause.issues.length > 0;
+      const hasSuggestions = clause.suggestions.length > 0;
+
+      ensureSpace(50);
+      
+      const startY = y;
+      
+      doc.setFillColor(...rl);
+      doc.rect(m, y, cw, 10, 'F');
+      doc.setFillColor(...rc);
+      doc.rect(m, y, 4, 10, 'F');
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...C.title);
+      doc.text(`${idx + 1}. ${clause.title}`, m + 8, y + 6.5);
+      
+      const badgeLabel = clause.riskLevel.toUpperCase();
+      doc.setFontSize(6.5);
+      doc.setFont('helvetica', 'bold');
+      const badgeTextW = doc.getTextWidth(badgeLabel);
+      const badgeTotalW = badgeTextW + 10;
+      const badgeX = pw - m - badgeTotalW - 4;
+      
+      doc.setFillColor(...rc);
+      doc.roundedRect(badgeX, y + 2, badgeTotalW, 6, 3, 3, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.text(badgeLabel, badgeX + 5, y + 6.2);
+      
+      y += 16;
+
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...C.muted);
+      doc.text('ORIGINAL CLAUSE', m + 6, y);
+      y += 4;
+
+      doc.setFontSize(8.5);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(...C.body);
+      const quoteLines: string[] = doc.splitTextToSize(`"${clause.originalText}"`, cw - 16);
+      let quoteY = y + 2;
+      
+      doc.setDrawColor(...C.light);
+      doc.setLineWidth(1.5);
+      doc.line(m + 6, quoteY - 2, m + 6, quoteY + quoteLines.length * 4.2);
+      
+      for (const line of quoteLines) {
+        doc.text(line, m + 10, quoteY);
+        quoteY += 4.2;
+      }
+      y = quoteY + 4;
+
+      if (hasIssues) {
+        ensureSpace(14);
+        doc.setFontSize(7.5);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...C.bad);
+        doc.text(`ISSUES (${clause.issues.length})`, m + 6, y);
+        y += 4.5;
+
+        doc.setFontSize(8.5);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...C.body);
+        clause.issues.forEach((issue) => {
+          ensureSpace(10);
+          doc.setFillColor(...C.bad);
+          doc.circle(m + 8, y - 1, 1, 'F');
+          const issueLines: string[] = doc.splitTextToSize(issue, cw - 18);
+          for (const line of issueLines) {
+            ensureSpace(5);
+            doc.text(line, m + 12, y);
+            y += 4.2;
+          }
+          y += 1.5;
+        });
+        y += 2;
+      }
+
+      if (hasSuggestions) {
+        ensureSpace(14);
+        doc.setFontSize(7.5);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...C.headerAccent);
+        doc.text(`AI FIX SUGGESTIONS`, m + 6, y);
+        y += 4.5;
+
+        doc.setFontSize(8.5);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...C.body);
+        clause.suggestions.forEach((s) => {
+          ensureSpace(10);
+          const sugLines: string[] = doc.splitTextToSize(s, cw - 18);
+          
+          doc.setFillColor(...C.blueFill);
+          doc.roundedRect(m + 6, y - 4, cw - 12, sugLines.length * 4.2 + 3, 2, 2, 'F');
+          
+          doc.setFillColor(...C.headerAccent);
+          doc.circle(m + 9, y - 1, 1, 'F');
+
+          for (const line of sugLines) {
+            ensureSpace(5);
+            doc.text(line, m + 13, y);
+            y += 4.2;
+          }
+          y += 2.5;
+        });
+        y += 2;
+      }
+
+      ensureSpace(10);
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...C.muted);
+      doc.text(`REFERENCE LAW:`, m + 6, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(clause.relevantLaw, m + 32, y);
+      y += 8;
+
+      doc.setDrawColor(...C.light);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(m, startY, cw, y - startY, 3, 3, 'S');
+
+      y += 10;
+    });
+
+    ensureSpace(35);
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...C.title);
+    doc.text('Regulations Reference Index', m, y);
+    
+    y += 4;
+    doc.setDrawColor(...C.light);
+    doc.setLineWidth(1);
+    doc.line(m, y, m + 20, y);
+    y += 8;
+
+    const laws = [...new Set(report.clauses.map(c => c.relevantLaw))];
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...C.body);
+    
+    laws.forEach((law) => {
+      ensureSpace(8);
+      doc.setFillColor(...C.headerAccent);
+      doc.circle(m + 5, y - 1, 1, 'F');
+      
+      const lawLines = doc.splitTextToSize(law, cw - 12);
+      for (const line of lawLines) {
+        doc.text(line, m + 9, y);
+        y += 4.2;
+      }
+      y += 1.5;
+    });
+
+    y += 15;
+    ensureSpace(20);
+    doc.setFillColor(...C.badLight);
+    doc.setDrawColor(252, 165, 165);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(m, y, cw, 14, 2, 2, 'FD');
+
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(220, 38, 38);
+    doc.text('DISCLAIMER', m + 5, y + 5.5);
+    
+    doc.setFont('helvetica', 'italic');
+    doc.text('This report is generated by an AI model and is intended for informational/preliminary purposes only. Always consult a legal advocate.', m + 5, y + 10.5);
+
+    addPageFooter();
+
+    doc.save(`ContractCheck_${report.name.replace(/\.[^/.]+$/, '')}_Report.pdf`);
+  };
+
+  const safePct = total > 0 ? (safe / total) * 100 : 0;
+  const riskyPct = total > 0 ? (risky / total) * 100 : 0;
+  const badPct = total > 0 ? (bad / total) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30">
-      {/* Background glows */}
+    <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30 font-sans pb-16">
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-1/3 h-1/3 rounded-full bg-blue-600/[0.06] blur-[120px]" />
         <div className="absolute bottom-0 right-0 w-1/4 h-1/4 rounded-full bg-blue-500/[0.04] blur-[100px]" />
       </div>
 
-      {/* Header */}
       <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#060608]/90 backdrop-blur-xl">
-        <div className="max-w-[900px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-6 h-6 rounded-lg bg-blue-600 flex items-center justify-center">
               <Shield size={14} className="text-white" />
             </div>
-            <span className="font-semibold text-sm tracking-tight">ContractCheck</span>
+            <span className="font-semibold text-sm tracking-tight text-white">ContractCheck</span>
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 font-semibold uppercase tracking-wider">AI</span>
           </Link>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => window.print()}
+              onClick={handleDownload}
               className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white border border-white/[0.06] hover:border-white/10 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
             >
               <Download size={13} /> Export PDF
             </button>
             <Link
               to="/signup"
-              className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
+              className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-lg font-semibold transition-colors"
             >
-              <ExternalLink size={13} /> Analyze Your Contract
+              <ExternalLink size={13} /> Analyze Free Contract
             </Link>
           </div>
         </div>
       </header>
 
-      <div className="relative z-10 max-w-[900px] mx-auto px-4 sm:px-6 py-8">
-          {/* Public Banner */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 text-xs text-slate-500 mb-6 bg-white/[0.03] border border-white/[0.05] px-4 py-2.5 rounded-xl"
-          >
-            <Shield size={13} className="text-blue-400 shrink-0" />
-            This is a read-only shared compliance report generated by ContractCheck AI.
-          </motion.div>
+      <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 pt-8">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2 text-xs text-slate-500 mb-6 bg-white/[0.03] border border-white/[0.05] px-4 py-2.5 rounded-xl w-fit"
+        >
+          <Shield size={13} className="text-blue-400 shrink-0" />
+          This is a read-only shared compliance report generated by ContractCheck AI.
+        </motion.div>
 
-          {/* Report Header with Score Ring */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="bg-[#0B0B0E] border border-white/[0.06] rounded-2xl p-6 sm:p-8 mb-6"
-          >
-            <div className="flex flex-col sm:flex-row items-center gap-6">
-              <ScoreRing score={score} risk={report.overallRisk} />
+        {/* Main Layout: Two Columns identical to ResultPage */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+          <div className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className={cn('border rounded-2xl overflow-hidden', ocfg.border)}
+            >
+              <div className={cn('bg-gradient-to-br p-6', ocfg.gradient)}>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                  <ScoreRing score={score} risk={report.overallRisk} />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-white/[0.06] px-2 py-0.5 rounded">{report.type}</span>
+                      <span className={cn('text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border', ocfg.color, ocfg.border)}>
+                        {ocfg.label}
+                      </span>
+                    </div>
+                    <h1 className="text-xl font-bold text-white mb-1">{report.name}</h1>
+                    <p className="text-sm text-slate-400 mb-3">{report.parties}</p>
 
-              <div className="flex-1 text-center sm:text-left">
-                <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
-                  <FileText size={16} className="text-slate-500" />
-                  <span className="text-xs text-slate-500 uppercase tracking-wider">{report.type}</span>
-                </div>
-                <h1 className="text-xl sm:text-2xl font-bold tracking-tight mb-1">{report.name}</h1>
-                <p className="text-sm text-slate-400 mb-1">Parties: {report.parties}</p>
-                <p className="text-xs text-slate-600">Analyzed on {report.date}</p>
-
-                <div className="mt-3">
-                  <span className={cn(
-                    'inline-flex items-center gap-1.5 text-xs font-bold uppercase px-3 py-1 rounded-lg border',
-                    ocfg.color, ocfg.border, ocfg.bg
-                  )}>
-                    <AlertTriangle size={12} />
-                    {ocfg.label}
-                  </span>
+                    <div className="mb-2">
+                      <div className="flex items-center gap-1 h-2.5 rounded-full overflow-hidden bg-white/[0.06]">
+                        {safePct > 0 && (
+                          <motion.div
+                            className="h-full bg-emerald-500 rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${safePct}%` }}
+                            transition={{ duration: 0.8, delay: 0.5 }}
+                          />
+                        )}
+                        {riskyPct > 0 && (
+                          <motion.div
+                            className="h-full bg-amber-500 rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${riskyPct}%` }}
+                            transition={{ duration: 0.8, delay: 0.7 }}
+                          />
+                        )}
+                        {badPct > 0 && (
+                          <motion.div
+                            className="h-full bg-red-500 rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${badPct}%` }}
+                            transition={{ duration: 0.8, delay: 0.9 }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-[11px] text-slate-500">
+                      <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500" /> {safe} Safe</span>
+                      <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-500" /> {risky} Risky</span>
+                      <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500" /> {bad} Non-compliant</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
 
-          {/* Stat Boxes */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6"
-          >
-            <div className="bg-emerald-500/[0.06] border border-emerald-500/20 rounded-xl p-4 text-center">
-              <p className="text-2xl font-bold text-emerald-400">{safe}</p>
-              <p className="text-[11px] text-slate-500 mt-1 uppercase tracking-wider">Safe</p>
-            </div>
-            <div className="bg-amber-500/[0.06] border border-amber-500/20 rounded-xl p-4 text-center">
-              <p className="text-2xl font-bold text-amber-400">{risky}</p>
-              <p className="text-[11px] text-slate-500 mt-1 uppercase tracking-wider">Risky</p>
-            </div>
-            <div className="bg-red-500/[0.06] border border-red-500/20 rounded-xl p-4 text-center">
-              <p className="text-2xl font-bold text-red-400">{bad}</p>
-              <p className="text-[11px] text-slate-500 mt-1 uppercase tracking-wider">Non-compliant</p>
-            </div>
-            <div className="bg-blue-500/[0.06] border border-blue-500/20 rounded-xl p-4 text-center">
-              <p className="text-2xl font-bold text-blue-400">{totalIssues}</p>
-              <p className="text-[11px] text-slate-500 mt-1 uppercase tracking-wider">Issues Found</p>
-            </div>
-          </motion.div>
-
-          {/* Compliance Bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.15 }}
-            className="bg-[#0B0B0E] border border-white/[0.06] rounded-xl p-4 mb-8"
-          >
-            <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-              <span>Clause Compliance Breakdown</span>
-              <span>{total} clauses analyzed</span>
-            </div>
-            <div className="flex h-3 rounded-full overflow-hidden gap-0.5">
-              {safe > 0 && (
-                <motion.div
-                  className="bg-emerald-500 rounded-l-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(safe / total) * 100}%` }}
-                  transition={{ duration: 0.8, delay: 0.3 }}
-                />
-              )}
-              {risky > 0 && (
-                <motion.div
-                  className="bg-amber-500"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(risky / total) * 100}%` }}
-                  transition={{ duration: 0.8, delay: 0.5 }}
-                />
-              )}
-              {bad > 0 && (
-                <motion.div
-                  className="bg-red-500 rounded-r-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(bad / total) * 100}%` }}
-                  transition={{ duration: 0.8, delay: 0.7 }}
-                />
-              )}
-            </div>
-            <div className="flex items-center gap-4 mt-2.5 text-[11px]">
-              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Safe ({safe})</span>
-              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-500" /> Risky ({risky})</span>
-              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500" /> Non-compliant ({bad})</span>
-            </div>
-          </motion.div>
-
-          {/* Clause Cards */}
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-white">Detailed Clause Analysis</h2>
-            <span className="text-xs text-slate-500">{total} clauses</span>
-          </div>
-          <div className="space-y-3">
-            {report.clauses.map((clause, i) => (
-              <ClauseCard key={clause.id} clause={clause} index={i} />
-            ))}
-          </div>
-
-          {/* Footer CTA */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="mt-10 text-center bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-500/20 rounded-2xl p-8"
-          >
-            <p className="text-lg font-bold mb-2">Want to check your own contracts?</p>
-            <p className="text-sm text-slate-400 mb-5">Get 3 free analyses. No credit card required.</p>
-            <Link
-              to="/signup"
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="flex items-center gap-1 bg-white/[0.03] border border-white/[0.06] rounded-xl p-1 overflow-x-auto"
             >
-              Start Free with ContractCheck <ExternalLink size={16} />
-            </Link>
-          </motion.div>
+              {FILTER_TABS.map(tab => {
+                const count = tab.key === 'all' ? total
+                  : report.clauses.filter(c => c.riskLevel === tab.key).length;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveFilter(tab.key)}
+                    className={cn(
+                      'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex-1 justify-center whitespace-nowrap min-w-fit',
+                      activeFilter === tab.key
+                        ? 'bg-white/[0.08] text-white shadow-sm'
+                        : 'text-slate-500 hover:text-slate-300'
+                    )}
+                  >
+                    <span className="hidden sm:inline">{tab.label}</span>
+                    <span className="sm:hidden">{tab.key === 'all' ? 'All' : tab.key === 'Non-compliant' ? 'Bad' : tab.label}</span>
+                    <span className={cn(
+                      'text-[10px] px-1.5 py-0.5 rounded-md',
+                      activeFilter === tab.key ? 'bg-white/10' : 'bg-white/[0.04]'
+                    )}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </motion.div>
 
-          <p className="text-center text-xs text-slate-700 mt-8">
-            AI-generated report. Not legal advice. Powered by ContractCheck AI.
-          </p>
+            <div className="space-y-3">
+              {filteredClauses.length === 0 ? (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-12 text-slate-500 text-sm"
+                >
+                  No clauses match this filter.
+                </motion.div>
+              ) : (
+                filteredClauses.map((clause, i) => (
+                  <ClauseCard key={clause.id} clause={clause} index={i} />
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15 }}
+              className="border border-white/[0.06] rounded-2xl bg-white/[0.02] p-5 space-y-4"
+            >
+              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                <Shield size={14} className="text-blue-400" /> Analysis Summary
+              </h3>
+              <div className="space-y-3">
+                <StatRow label="Total Clauses" value={total} />
+                <StatRow label="Issues Found" value={totalIssues} valueColor="text-red-400" />
+                <StatRow label="AI Suggestions" value={totalSuggestions} valueColor="text-blue-400" />
+                <StatRow label="Compliance Score" value={`${score}/100`} valueColor={ocfg.color} />
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="border border-white/[0.06] rounded-2xl bg-white/[0.02] p-5 space-y-4"
+            >
+              <h3 className="text-sm font-semibold text-white">Risk Distribution</h3>
+              <div className="space-y-3">
+                <DistBar label="Safe" count={safe} total={total} color="bg-emerald-500" textColor="text-emerald-400" />
+                <DistBar label="Risky" count={risky} total={total} color="bg-amber-500" textColor="text-amber-400" />
+                <DistBar label="Non-compliant" count={bad} total={total} color="bg-red-500" textColor="text-red-400" />
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.25 }}
+              className="border border-white/[0.06] rounded-2xl bg-white/[0.02] p-5 space-y-3"
+            >
+              <h3 className="text-sm font-semibold text-white">Report Details</h3>
+              <MetaRow label="File" value={report.name} />
+              <MetaRow label="Contract Type" value={report.type} />
+              <MetaRow label="Parties" value={report.parties} />
+              <MetaRow label="Analyzed" value={new Date(report.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} />
+              <MetaRow label="Status" value={report.status} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="border border-white/[0.06] rounded-2xl bg-white/[0.02] p-5 space-y-3"
+            >
+              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                <BookOpen size={14} className="text-slate-400" /> Regulations Referenced
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {[...new Set(report.clauses.map(c => c.relevantLaw))].map(law => (
+                  <span key={law} className="text-[10px] text-slate-400 bg-white/[0.04] border border-white/[0.06] px-2.5 py-1 rounded-lg">
+                    {law.length > 40 ? law.slice(0, 38) + '...' : law}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+          </div>
         </div>
+
+        {/* Footer CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mt-12 text-center bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-500/20 rounded-3xl p-10 max-w-4xl mx-auto"
+        >
+          <p className="text-2xl font-bold mb-3">Want to check your own contracts?</p>
+          <p className="text-slate-400 mb-6">Get 3 free analyses. No credit card required.</p>
+          <Link
+            to="/signup"
+            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3.5 rounded-full font-bold transition-all shadow-lg shadow-blue-500/20 hover:scale-105"
+          >
+            Start Free with ContractCheck <ExternalLink size={16} />
+          </Link>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Helper Components ────────────────────────────────────────────────────────
+
+function StatRow({ label, value, valueColor = 'text-white' }: { label: string; value: string | number; valueColor?: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-xs text-slate-500">{label}</span>
+      <span className={cn('text-sm font-semibold', valueColor)}>{value}</span>
+    </div>
+  );
+}
+
+function DistBar({ label, count, total, color, textColor }: { label: string; count: number; total: number; color: string; textColor: string }) {
+  const pct = total > 0 ? (count / total) * 100 : 0;
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs text-slate-400">{label}</span>
+        <span className={cn('text-xs font-semibold', textColor)}>{count}</span>
+      </div>
+      <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+        <motion.div
+          className={cn('h-full rounded-full', color)}
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function MetaRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[10px] uppercase tracking-wider text-slate-500">{label}</span>
+      <span className="text-xs text-slate-300 font-medium">{value}</span>
     </div>
   );
 }
