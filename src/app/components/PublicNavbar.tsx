@@ -28,9 +28,22 @@ export function PublicNavbar() {
   const { user } = useAuth();
 
   React.useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    let rafId = 0;
+
+    const handleScroll = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0;
+        const nextScrolled = window.scrollY > 20;
+        setScrolled(prev => (prev === nextScrolled ? prev : nextScrolled));
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId) window.cancelAnimationFrame(rafId);
+    };
   }, []);
 
   // Close mobile menu on route change
@@ -40,9 +53,9 @@ export function PublicNavbar() {
 
   return (
     <header className={cn(
-      'sticky top-0 z-50 w-full border-b transition-all duration-300',
+      'sticky top-0 z-50 w-full border-b transition-colors duration-200',
       scrolled
-        ? 'border-white/[0.08] bg-[#060608]/95 backdrop-blur-xl shadow-lg shadow-black/20'
+        ? 'border-white/[0.08] bg-[#060608]/95 md:backdrop-blur-xl md:shadow-lg md:shadow-black/20'
         : 'border-transparent bg-transparent'
     )}>
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -90,6 +103,7 @@ export function PublicNavbar() {
             onClick={() => setMobileOpen(!mobileOpen)}
             className="md:hidden p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
             aria-label="Toggle menu"
+            aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
@@ -98,7 +112,7 @@ export function PublicNavbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-white/[0.06] bg-[#060608]/98 backdrop-blur-xl">
+        <div className="md:hidden border-t border-white/[0.06] bg-[#060608]">
           <div className="max-w-[1200px] mx-auto px-4 py-4 flex flex-col gap-1">
             {NAV_LINKS.map(link => (
               <Link

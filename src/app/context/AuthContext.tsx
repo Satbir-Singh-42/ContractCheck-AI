@@ -19,7 +19,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
 }
 
@@ -157,8 +157,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
     setUser(null);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.warn('Sign out error:', error.message);
+    }
   };
 
   const updateUser = async (updates: Partial<User>) => {

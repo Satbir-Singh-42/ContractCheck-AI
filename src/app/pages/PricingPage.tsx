@@ -105,8 +105,8 @@ export function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#060608] text-white">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-blue-600/8 blur-[120px] pointer-events-none" />
+    <div className="min-h-screen w-full bg-[#060608] text-white relative overflow-x-hidden">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[420px] h-[220px] rounded-full bg-blue-600/8 blur-[80px] pointer-events-none sm:w-[800px] sm:h-[400px] sm:blur-[120px]" />
 
       <PublicNavbar />
 
@@ -114,17 +114,17 @@ export function PricingPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative max-w-[1100px] mx-auto px-4 sm:px-6 py-20"
+        className="relative w-full max-w-[1100px] mx-auto px-4 sm:px-6 py-12 sm:py-16 lg:py-20"
       >
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+        <div className="text-center mb-10 sm:mb-16">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
             Simple, Transparent Pricing
           </h1>
-          <p className="text-lg text-slate-400 max-w-[500px] mx-auto mb-8">
+          <p className="text-base sm:text-lg text-slate-400 max-w-[500px] mx-auto mb-6 sm:mb-8">
             Start free. Scale as your compliance needs grow. Cancel anytime.
           </p>
 
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
             <span 
               className={cn('text-sm font-medium transition-colors cursor-pointer', !isAnnual ? 'text-white' : 'text-slate-500')} 
               onClick={() => setIsAnnual(false)}
@@ -138,15 +138,15 @@ export function PricingPage() {
               <div className={cn('w-4 h-4 rounded-full bg-blue-400 transition-all shadow-sm', isAnnual ? 'translate-x-6' : 'translate-x-0')} />
             </button>
             <span 
-              className={cn('text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer', isAnnual ? 'text-white' : 'text-slate-500')} 
+              className={cn('text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer flex-wrap justify-center', isAnnual ? 'text-white' : 'text-slate-500')} 
               onClick={() => setIsAnnual(true)}
             >
-              Annually <span className="text-[10px] whitespace-nowrap font-bold bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">Save 25%</span>
+              Annually <span className="text-[10px] font-bold bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">Save 25%</span>
             </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
           {getPlans(isAnnual).map((plan) => {
             const c = colorMap[plan.color] || colorMap.slate;
             const Icon = plan.icon;
@@ -154,7 +154,7 @@ export function PricingPage() {
               <div
                 key={plan.name}
                 className={cn(
-                  'relative rounded-2xl border p-8 flex flex-col',
+                  'relative min-w-0 rounded-2xl border p-6 sm:p-8 flex flex-col',
                   c.border, c.bg,
                   plan.popular && 'md:-translate-y-4 shadow-[0_0_60px_-10px_rgba(37,99,235,0.2)]'
                 )}
@@ -179,7 +179,7 @@ export function PricingPage() {
 
                 <ul className="space-y-3 mb-8 flex-1">
                   {plan.features.map((f, i) => (
-                    <li key={i} className="flex items-start gap-2.5 text-sm text-slate-300">
+                    <li key={i} className="flex items-start gap-2.5 text-sm text-slate-300 break-words">
                       <CheckCircle size={15} className={cn('mt-0.5 shrink-0', c.text)} />
                       {f}
                     </li>
@@ -198,7 +198,7 @@ export function PricingPage() {
         </div>
 
         {/* FAQ Row */}
-        <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+        <div className="mt-14 sm:mt-20 md:mt-24 grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-center">
           {[
             { q: 'Is my data secure?', a: 'All documents are processed in-memory and never stored permanently without your permission.' },
             { q: 'Can I upgrade later?', a: 'Yes. Upgrade or downgrade at any time. Billing is prorated automatically.' },

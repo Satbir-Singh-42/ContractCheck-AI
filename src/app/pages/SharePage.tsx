@@ -738,13 +738,13 @@ export function SharePage() {
   const badPct = total > 0 ? (bad / total) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30 font-sans pb-16">
+    <div className="min-h-screen w-full overflow-x-hidden bg-[#060608] text-white selection:bg-blue-500/30 font-sans pb-16">
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-1/3 h-1/3 rounded-full bg-blue-600/[0.06] blur-[120px]" />
         <div className="absolute bottom-0 right-0 w-1/4 h-1/4 rounded-full bg-blue-500/[0.04] blur-[100px]" />
       </div>
 
-      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#060608]/90 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#060608]/90 md:backdrop-blur-md">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Shield className="w-6 h-6 text-blue-400" />
@@ -770,7 +770,7 @@ export function SharePage() {
         </div>
       </header>
 
-      <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 pt-8">
+      <div className="relative z-10 w-full max-w-[1200px] mx-auto px-4 sm:px-6 pt-8">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}

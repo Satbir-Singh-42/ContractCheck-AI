@@ -47,10 +47,23 @@
 
   body {
     @apply bg-background text-foreground;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   html {
     font-size: var(--font-size);
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-height: 100%;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   h1 {
@@ -93,5 +106,12 @@
     font-size: var(--text-base);
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
+  }
+}
+
+@layer utilities {
+  .min-h-screen {
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 }

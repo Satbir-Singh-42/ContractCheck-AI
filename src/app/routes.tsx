@@ -3,25 +3,23 @@ import { createBrowserRouter, Outlet, useLocation } from 'react-router';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
-// Public Pages
-import { LandingPage } from './pages/LandingPage';
-import { SignupPage } from './pages/SignupPage';
-import { LoginPage } from './pages/LoginPage';
-import { PricingPage } from './pages/PricingPage';
-import { SharePage } from './pages/SharePage';
-import { ContactPage } from './pages/ContactPage';
-import { PrivacyPage } from './pages/PrivacyPage';
-import { AboutPage } from './pages/AboutPage';
+const LandingPage = React.lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
+const SignupPage = React.lazy(() => import('./pages/SignupPage').then((m) => ({ default: m.SignupPage })));
+const LoginPage = React.lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
+const PricingPage = React.lazy(() => import('./pages/PricingPage').then((m) => ({ default: m.PricingPage })));
+const SharePage = React.lazy(() => import('./pages/SharePage').then((m) => ({ default: m.SharePage })));
+const ContactPage = React.lazy(() => import('./pages/ContactPage').then((m) => ({ default: m.ContactPage })));
+const PrivacyPage = React.lazy(() => import('./pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })));
+const AboutPage = React.lazy(() => import('./pages/AboutPage').then((m) => ({ default: m.AboutPage })));
 
-// Protected Pages
-import { DashboardPage } from './pages/DashboardPage';
-import { UploadPage } from './pages/UploadPage';
-import { ProcessPage } from './pages/ProcessPage';
-import { ResultPage } from './pages/ResultPage';
-import { PaymentPage } from './pages/PaymentPage';
-import { SuccessPage } from './pages/SuccessPage';
-import { FailurePage } from './pages/FailurePage';
-import { ProfilePage } from './pages/ProfilePage';
+const DashboardPage = React.lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
+const UploadPage = React.lazy(() => import('./pages/UploadPage').then((m) => ({ default: m.UploadPage })));
+const ProcessPage = React.lazy(() => import('./pages/ProcessPage').then((m) => ({ default: m.ProcessPage })));
+const ResultPage = React.lazy(() => import('./pages/ResultPage').then((m) => ({ default: m.ResultPage })));
+const PaymentPage = React.lazy(() => import('./pages/PaymentPage').then((m) => ({ default: m.PaymentPage })));
+const SuccessPage = React.lazy(() => import('./pages/SuccessPage').then((m) => ({ default: m.SuccessPage })));
+const FailurePage = React.lazy(() => import('./pages/FailurePage').then((m) => ({ default: m.FailurePage })));
+const ProfilePage = React.lazy(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -31,12 +29,27 @@ function ScrollToTop() {
   return null;
 }
 
+function RouteFallback() {
+  return (
+    <div className="min-h-screen bg-[#060608] text-white flex items-center justify-center px-4">
+      <div className="text-sm text-slate-400">Loading page...</div>
+    </div>
+  );
+}
+
+function LazyPage({ Component }: { Component: React.LazyExoticComponent<React.ComponentType<any>> }) {
+  return (
+    <React.Suspense fallback={<RouteFallback />}>
+      <Component />
+    </React.Suspense>
+  );
+}
+
 function RootLayout() {
-  const location = useLocation();
   return (
     <AuthProvider>
       <ScrollToTop />
-      <div className="min-h-screen flex flex-col w-full">
+      <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
         <Outlet />
       </div>
     </AuthProvider>
@@ -57,26 +70,26 @@ export const router = createBrowserRouter([
     Component: RootLayout,
     children: [
       // Public routes
-      { index: true, Component: LandingPage },
-      { path: 'signup', Component: SignupPage },
-      { path: 'login', Component: LoginPage },
-      { path: 'pricing', Component: PricingPage },
-      { path: 'share/:reportId', Component: SharePage },
-      { path: 'contact', Component: ContactPage },
-      { path: 'privacy', Component: PrivacyPage },
-      { path: 'about', Component: AboutPage },
+      { index: true, element: <LazyPage Component={LandingPage} /> },
+      { path: 'signup', element: <LazyPage Component={SignupPage} /> },
+      { path: 'login', element: <LazyPage Component={LoginPage} /> },
+      { path: 'pricing', element: <LazyPage Component={PricingPage} /> },
+      { path: 'share/:reportId', element: <LazyPage Component={SharePage} /> },
+      { path: 'contact', element: <LazyPage Component={ContactPage} /> },
+      { path: 'privacy', element: <LazyPage Component={PrivacyPage} /> },
+      { path: 'about', element: <LazyPage Component={AboutPage} /> },
       // Protected routes
       {
         Component: ProtectedLayout,
         children: [
-          { path: 'dashboard', Component: DashboardPage },
-          { path: 'upload', Component: UploadPage },
-          { path: 'process/:id', Component: ProcessPage },
-          { path: 'result/:id', Component: ResultPage },
-          { path: 'payment', Component: PaymentPage },
-          { path: 'success', Component: SuccessPage },
-          { path: 'failure', Component: FailurePage },
-          { path: 'profile', Component: ProfilePage },
+          { path: 'dashboard', element: <LazyPage Component={DashboardPage} /> },
+          { path: 'upload', element: <LazyPage Component={UploadPage} /> },
+          { path: 'process/:id', element: <LazyPage Component={ProcessPage} /> },
+          { path: 'result/:id', element: <LazyPage Component={ResultPage} /> },
+          { path: 'payment', element: <LazyPage Component={PaymentPage} /> },
+          { path: 'success', element: <LazyPage Component={SuccessPage} /> },
+          { path: 'failure', element: <LazyPage Component={FailurePage} /> },
+          { path: 'profile', element: <LazyPage Component={ProfilePage} /> },
         ],
       },
     ],

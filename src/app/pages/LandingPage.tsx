@@ -25,7 +25,7 @@ function BrandLogo({ size = 24 }: { size?: number }) {
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 function Hero() {
   return (
-    <section className="pt-24 pb-16 flex flex-col items-center text-center">
+    <section className="pt-16 sm:pt-24 pb-12 sm:pb-16 flex flex-col items-center text-center">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -132,7 +132,7 @@ const REGULATIONS = [
 
 function RegulationsSection() {
   return (
-    <section className="py-24">
+    <section className="py-14 sm:py-20 lg:py-24">
       <div className="text-center mb-14">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -230,7 +230,7 @@ const HOW_STEPS = [
 
 function HowItWorksSection() {
   return (
-    <section className="py-24 border-t border-white/[0.05]">
+    <section className="py-14 sm:py-20 lg:py-24 border-t border-white/[0.05]">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -293,7 +293,7 @@ const FEATURES = [
 
 function FeaturesGrid() {
   return (
-    <section className="py-24 border-t border-white/[0.05]">
+    <section className="py-14 sm:py-20 lg:py-24 border-t border-white/[0.05]">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -358,7 +358,7 @@ const TESTIMONIALS = [
 
 function SocialProof() {
   return (
-    <section className="py-24 border-t border-white/[0.05]">
+    <section className="py-14 sm:py-20 lg:py-24 border-t border-white/[0.05]">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -405,9 +405,9 @@ function SocialProof() {
 // ─── Bottom CTA ───────────────────────────────────────────────────────────────
 function BottomCTA() {
   return (
-    <section className="py-32 relative overflow-hidden">
+    <section className="py-16 sm:py-24 lg:py-32 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-600/5 to-transparent pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-blue-500/15 blur-[150px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[240px] bg-blue-500/15 blur-[80px] rounded-full pointer-events-none sm:w-[800px] sm:h-[400px] sm:blur-[150px]" />
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -448,7 +448,7 @@ function BottomCTA() {
 // ─── Footer ───────────────────────────────────────────────────────────────────
 function Footer() {
   return (
-    <footer className="border-t border-white/[0.05] bg-[#060608] pt-16 pb-8">
+    <footer className="border-t border-white/[0.05] bg-[#060608] pt-12 sm:pt-16 pb-8">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-start justify-between gap-12 mb-16">
           <div className="max-w-[260px]">
@@ -504,11 +504,11 @@ function Footer() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30">
+    <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30 overflow-x-clip">
       {/* Background glows */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 rounded-full bg-blue-600/[0.08] blur-[140px]" />
-        <div className="absolute bottom-0 right-0 w-2/5 h-2/5 rounded-full bg-blue-500/[0.05] blur-[120px]" />
+        <div className="absolute top-0 left-0 w-3/4 h-1/2 rounded-full bg-blue-600/[0.08] blur-[90px] sm:w-1/2 sm:blur-[140px]" />
+        <div className="absolute bottom-0 right-0 w-3/5 h-2/5 rounded-full bg-blue-500/[0.05] blur-[75px] sm:w-2/5 sm:blur-[120px]" />
       </div>
 
       <div className="relative z-10 flex flex-col">

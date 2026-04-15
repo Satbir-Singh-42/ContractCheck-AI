@@ -17,14 +17,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = () => {
-    logout();
-    navigate('/');
+    setMobileOpen(false);
+    navigate('/', { replace: true });
+    void logout();
   };
 
   return (
-    <div className="min-h-screen bg-[#060608] text-white flex flex-col">
+    <div className="min-h-screen w-full overflow-x-hidden bg-[#060608] text-white flex flex-col">
       {/* Top Nav */}
-      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#060608]/90 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#060608]/90 md:backdrop-blur-md">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Shield className="w-6 h-6 text-blue-400" />
@@ -88,6 +89,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <button
               onClick={() => setMobileOpen(o => !o)}
               className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
+              aria-label="Toggle menu"
             >
               {mobileOpen ? <X size={20} /> : <Menu size={20} />}
             </button>

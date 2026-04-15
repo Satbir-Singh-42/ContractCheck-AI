@@ -21,9 +21,9 @@ function BrandLogo({ size = 24 }: { size?: number }) {
 // ─── Hero Section ─────────────────────────────────────────────────────────────
 function HeroSection() {
   return (
-    <section className="pt-32 pb-24 flex flex-col items-center text-center relative overflow-visible">
+    <section className="pt-20 sm:pt-28 lg:pt-32 pb-14 sm:pb-20 lg:pb-24 flex flex-col items-center text-center relative overflow-visible">
       {/* Dynamic background element */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/10 blur-[150px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[380px] bg-blue-500/10 blur-[80px] rounded-full pointer-events-none sm:w-[600px] sm:h-[600px] sm:blur-[150px]" />
 
       <motion.div
         initial={{ opacity: 0, y: -20, scale: 0.95 }}
@@ -78,7 +78,7 @@ const OUTPUT_CARDS = [
 
 function CoreCapabilities() {
   return (
-    <section className="py-24 relative z-10">
+    <section className="py-14 sm:py-20 lg:py-24 relative z-10">
       <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 0.6 }} className="mb-16 flex flex-col items-center text-center">
         <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-6">Operational Capabilities</h2>
         <p className="text-slate-400 max-w-[650px] text-lg leading-relaxed">Built from the ground up for Indian legal compliance. Every component is purpose-engineered for true accuracy and speed.</p>
@@ -166,7 +166,7 @@ const USE_CASES = [
 
 function UseCasesSection() {
   return (
-    <section className="py-24 border-t border-white/[0.05] relative z-10 mt-12">
+    <section className="py-14 sm:py-20 lg:py-24 border-t border-white/[0.05] relative z-10 mt-8 sm:mt-12">
       <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 0.6 }} className="mb-16 flex flex-col justify-center items-center text-center">
         <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-6">Sector-Specific Intelligence</h2>
         <p className="text-slate-400 max-w-[700px] text-lg leading-relaxed">Whether you are a startup founder, advocate, or compliance officer — ContractCheck AI adapts seamlessly to your unique regulatory needs.</p>
@@ -215,7 +215,7 @@ const REGULATIONS = [
 
 function RegulationsSection() {
   return (
-    <section className="py-24 border-t border-white/[0.05] mt-12">
+    <section className="py-14 sm:py-20 lg:py-24 border-t border-white/[0.05] mt-8 sm:mt-12">
       <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 0.6 }} className="text-center mb-16">
         <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-6">Regulations We Cover</h2>
         <p className="text-slate-400 max-w-[650px] mx-auto text-lg leading-relaxed">Purpose-built for Indian law. Every single clause is meticulously cross-referenced against the latest legislation to ensure absolute compliance.</p>
@@ -250,9 +250,9 @@ function RegulationsSection() {
 // ─── Bottom CTA ───────────────────────────────────────────────────────────────
 function BottomCTA() {
   return (
-    <section className="py-32 relative overflow-hidden mt-12">
+    <section className="py-16 sm:py-24 lg:py-32 relative overflow-hidden mt-8 sm:mt-12">
       <div className="absolute inset-0 bg-gradient-to-b from-[#060608] via-blue-600/5 to-[#060608] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-blue-600/15 blur-[150px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[240px] bg-blue-600/15 blur-[80px] rounded-full pointer-events-none sm:w-[800px] sm:h-[400px] sm:blur-[150px]" />
       
       <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-[#0B0B0E] border border-white/[0.08] rounded-3xl p-8 sm:p-12 md:p-16 flex flex-col md:flex-row items-center gap-10 sm:gap-16 overflow-hidden relative shadow-[0_0_50px_rgba(0,0,0,0.4)]">
@@ -289,7 +289,7 @@ function BottomCTA() {
 // ─── Footer ───────────────────────────────────────────────────────────────────
 function Footer() {
   return (
-    <footer className="border-t border-white/[0.05] bg-[#060608] pt-20 pb-10">
+    <footer className="border-t border-white/[0.05] bg-[#060608] pt-12 sm:pt-20 pb-8 sm:pb-10">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row items-start justify-between gap-12 mb-20">
           <div className="max-w-[300px]">
@@ -329,10 +329,10 @@ function Footer() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export function AboutPage() {
   return (
-    <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30">
+    <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30 overflow-x-clip">
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 left-0 w-1/2 h-1/2 rounded-full bg-blue-600/[0.05] blur-[150px]" />
-        <div className="absolute bottom-0 right-0 w-2/5 h-2/5 rounded-full bg-purple-600/[0.03] blur-[130px]" />
+        <div className="absolute top-0 left-0 w-3/4 h-1/2 rounded-full bg-blue-600/[0.05] blur-[90px] sm:w-1/2 sm:blur-[150px]" />
+        <div className="absolute bottom-0 right-0 w-3/5 h-2/5 rounded-full bg-purple-600/[0.03] blur-[75px] sm:w-2/5 sm:blur-[130px]" />
       </div>
       <div className="relative z-10 flex flex-col">
         <PublicNavbar />
