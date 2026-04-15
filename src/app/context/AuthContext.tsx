@@ -60,20 +60,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     async function getInitialSession() {
       try {
-        const fetchFlow = async () => {
-          const { data: { session }, error } = await supabase.auth.getSession();
-          if (session?.user && mounted) {
-            const u = await loadProfile(session.user.id, session.user.email);
-            setUser(u);
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (session?.user && mounted) {
+          try {
+             // If this takes a long time (e.g. Supabase cold start), we wait patiently.
+             const u = await loadProfile(session.user.id, session.user.email);
+             if (mounted) setUser(u);
+          } catch (profileError) {
+             console.warn('Profile fetch failed, using auth fallback:', profileError);
+             if (mounted) {
+               setUser({
+                 id: session.user.id,
+                 name: session.user.email?.split('@')[0] || 'User',
+                 email: session.user.email || '',
+                 plan: 'free',
+                 uploadsUsed: 0,
+                 uploadsLimit: 3
+               });
+             }
           }
-        };
-        // Forcefully break any deadlock after 5 seconds to guarantee UI unblocks
-        await Promise.race([
-          fetchFlow(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase Auth Timeout')), 5000))
-        ]);
+        }
       } catch (e) {
-        console.warn('Session init failed or timed out', e);
+        console.warn('Session init failed', e);
       } finally {
         if (mounted) setIsLoading(false);
       }

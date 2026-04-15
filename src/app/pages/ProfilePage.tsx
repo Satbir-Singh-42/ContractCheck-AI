@@ -8,6 +8,7 @@ import {
 import { AppLayout } from '../components/AppLayout';
 import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
+import { CustomSelect } from '../components/CustomSelect';
 import { cn } from '../../lib/utils';
 
 type Tab = 'general' | 'plan' | 'notifications' | 'security';
@@ -23,6 +24,7 @@ export function ProfilePage() {
   const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('general');
+  const [role, setRole] = useState('');
   const [saved, setSaved] = useState(false);
   const [notif, setNotif] = useState(() => {
     try {
@@ -187,15 +189,19 @@ export function ProfilePage() {
                     </div>
                     <div className="sm:col-span-2">
                       <label className="block text-xs font-medium text-slate-400 mb-2">Role (Optional)</label>
-                      <select className="w-full bg-[#111115] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500/60 transition-colors">
-                        <option value="">Select your role</option>
-                        <option value="lawyer">Lawyer / Advocate</option>
-                        <option value="ca">Chartered Accountant</option>
-                        <option value="cs">Company Secretary</option>
-                        <option value="business">Business Owner</option>
-                        <option value="freelancer">Freelancer</option>
-                        <option value="other">Other</option>
-                      </select>
+                      <CustomSelect 
+                        value={role} 
+                        onChange={setRole} 
+                        placeholder="Select your role"
+                        options={[
+                          { value: 'lawyer', label: 'Lawyer / Advocate' },
+                          { value: 'ca', label: 'Chartered Accountant' },
+                          { value: 'cs', label: 'Company Secretary' },
+                          { value: 'business', label: 'Business Owner' },
+                          { value: 'freelancer', label: 'Freelancer' },
+                          { value: 'other', label: 'Other' }
+                        ]}
+                      />
                     </div>
                   </div>
 
