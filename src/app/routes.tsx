@@ -5,12 +5,12 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LandingPage } from './pages/LandingPage';
 import { PricingPage } from './pages/PricingPage';
 import { AboutPage } from './pages/AboutPage';
+import { ContactPage } from './pages/ContactPage';
+import { PrivacyPage } from './pages/PrivacyPage';
 
 const SignupPage = React.lazy(() => import('./pages/SignupPage').then((m) => ({ default: m.SignupPage })));
 const LoginPage = React.lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
 const SharePage = React.lazy(() => import('./pages/SharePage').then((m) => ({ default: m.SharePage })));
-const ContactPage = React.lazy(() => import('./pages/ContactPage').then((m) => ({ default: m.ContactPage })));
-const PrivacyPage = React.lazy(() => import('./pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })));
 
 const DashboardPage = React.lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
 const UploadPage = React.lazy(() => import('./pages/UploadPage').then((m) => ({ default: m.UploadPage })));
@@ -24,9 +24,15 @@ const ProfilePage = React.lazy(() => import('./pages/ProfilePage').then((m) => (
 function ScrollToTop() {
   const location = useLocation();
 
-  React.useLayoutEffect(() => {
+  React.useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
+
+  React.useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  }, [location.key]);
+  }, [location.pathname, location.search, location.hash]);
 
   return null;
 }
@@ -79,8 +85,8 @@ export const router = createBrowserRouter([
       { path: 'login', element: <LazyPage Component={LoginPage} /> },
       { path: 'pricing', element: <PricingPage /> },
       { path: 'share/:reportId', element: <LazyPage Component={SharePage} /> },
-      { path: 'contact', element: <LazyPage Component={ContactPage} /> },
-      { path: 'privacy', element: <LazyPage Component={PrivacyPage} /> },
+      { path: 'contact', element: <ContactPage /> },
+      { path: 'privacy', element: <PrivacyPage /> },
       { path: 'about', element: <AboutPage /> },
       // Protected routes
       {

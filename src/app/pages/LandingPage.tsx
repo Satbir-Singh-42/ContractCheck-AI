@@ -447,10 +447,6 @@ function BottomCTA() {
 
 // ─── Footer ───────────────────────────────────────────────────────────────────
 function Footer() {
-  const handleFooterLinkClick = () => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  };
-
   return (
     <footer className="border-t border-white/[0.05] bg-[#060608] pt-12 sm:pt-16 pb-8">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -468,8 +464,8 @@ function Footer() {
           <div className="flex flex-wrap gap-12 text-sm">
             <div className="flex flex-col gap-3">
               <span className="font-semibold text-white mb-1">Product</span>
-              <Link to="/pricing" onClick={handleFooterLinkClick} className="text-slate-400 hover:text-white transition-colors">Pricing</Link>
-              <Link to="/upload" onClick={handleFooterLinkClick} className="text-slate-400 hover:text-white transition-colors">Analyze Contract</Link>
+              <Link to="/pricing" className="text-slate-400 hover:text-white transition-colors">Pricing</Link>
+              <Link to="/upload" className="text-slate-400 hover:text-white transition-colors">Analyze Contract</Link>
             </div>
             <div className="flex flex-col gap-3">
               <span className="font-semibold text-white mb-1">Regulations</span>
@@ -480,9 +476,9 @@ function Footer() {
             </div>
             <div className="flex flex-col gap-3">
               <span className="font-semibold text-white mb-1">Company</span>
-              <Link to="/about" onClick={handleFooterLinkClick} className="text-slate-400 hover:text-white transition-colors">About Us</Link>
-              <Link to="/contact" onClick={handleFooterLinkClick} className="text-slate-400 hover:text-white transition-colors">Contact</Link>
-              <Link to="/privacy" onClick={handleFooterLinkClick} className="text-slate-400 hover:text-white transition-colors">Privacy Policy</Link>
+              <Link to="/about" className="text-slate-400 hover:text-white transition-colors">About Us</Link>
+              <Link to="/contact" className="text-slate-400 hover:text-white transition-colors">Contact</Link>
+              <Link to="/privacy" className="text-slate-400 hover:text-white transition-colors">Privacy Policy</Link>
             </div>
           </div>
         </div>
@@ -506,16 +502,6 @@ function Footer() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export function LandingPage() {
-  const [showDeferredSections, setShowDeferredSections] = React.useState(false);
-
-  React.useEffect(() => {
-    const rafId = window.requestAnimationFrame(() => {
-      setShowDeferredSections(true);
-    });
-
-    return () => window.cancelAnimationFrame(rafId);
-  }, []);
-
   return (
     <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30">
       {/* Background glows */}
@@ -530,23 +516,13 @@ export function LandingPage() {
         <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
           <Hero />
 
-          {showDeferredSections ? (
-            <>
-              <RegulationsSection />
-              <HowItWorksSection />
-              <FeaturesGrid />
-              <SocialProof />
-            </>
-          ) : (
-            <div className="py-14 sm:py-20 lg:py-24" aria-hidden="true" />
-          )}
+          <RegulationsSection />
+          <HowItWorksSection />
+          <FeaturesGrid />
+          <SocialProof />
         </main>
 
-        {showDeferredSections ? (
-          <BottomCTA />
-        ) : (
-          <section className="py-16 sm:py-24 lg:py-32" aria-hidden="true" />
-        )}
+        <BottomCTA />
         <Footer />
       </div>
     </div>

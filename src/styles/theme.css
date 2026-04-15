@@ -49,21 +49,19 @@
     @apply bg-background text-foreground;
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   html {
     font-size: var(--font-size);
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
   }
 
   #root {
     min-height: 100%;
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
   }
 
   h1 {
