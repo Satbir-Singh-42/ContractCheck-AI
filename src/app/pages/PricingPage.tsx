@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { CheckCircle, Zap, Building2, ArrowRight, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -6,7 +6,7 @@ import { cn } from '../../lib/utils';
 import { motion } from 'motion/react';
 import { PublicNavbar } from '../components/PublicNavbar';
 
-const plans = [
+const getPlans = (isAnnual: boolean) => [
   {
     name: 'Free',
     price: '₹0',
@@ -23,11 +23,12 @@ const plans = [
     ],
     cta: 'Get Started Free',
     popular: false,
+    badge: null,
   },
   {
     name: 'Pro',
-    price: '₹999',
-    period: 'per month',
+    price: isAnnual ? '₹8,999' : '₹999',
+    period: isAnnual ? 'per year' : 'per month',
     description: 'For freelancers and small businesses.',
     icon: Zap,
     color: 'blue',
@@ -41,6 +42,7 @@ const plans = [
     ],
     cta: 'Start Pro Plan',
     popular: true,
+    badge: isAnnual ? 'Save 25%' : 'Most Popular',
   },
   {
     name: 'Enterprise',
@@ -59,6 +61,7 @@ const plans = [
     ],
     cta: 'Contact Sales',
     popular: false,
+    badge: null,
   },
 ];
 
@@ -89,6 +92,7 @@ const colorMap: Record<string, { border: string; bg: string; text: string; btn: 
 export function PricingPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [isAnnual, setIsAnnual] = useState(false);
 
   const handleCta = (plan: string) => {
     if (plan === 'Free') {
@@ -116,13 +120,34 @@ export function PricingPage() {
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
             Simple, Transparent Pricing
           </h1>
-          <p className="text-lg text-slate-400 max-w-[500px] mx-auto">
+          <p className="text-lg text-slate-400 max-w-[500px] mx-auto mb-8">
             Start free. Scale as your compliance needs grow. Cancel anytime.
           </p>
+
+          <div className="flex items-center justify-center gap-3">
+            <span 
+              className={cn('text-sm font-medium transition-colors cursor-pointer', !isAnnual ? 'text-white' : 'text-slate-500')} 
+              onClick={() => setIsAnnual(false)}
+            >
+              Monthly
+            </span>
+            <button 
+              onClick={() => setIsAnnual(!isAnnual)}
+              className="w-12 h-6 rounded-full bg-blue-600/20 border border-blue-500/30 relative flex items-center px-1 cursor-pointer transition-colors shadow-inner focus:outline-none"
+            >
+              <div className={cn('w-4 h-4 rounded-full bg-blue-400 transition-all shadow-sm', isAnnual ? 'translate-x-6' : 'translate-x-0')} />
+            </button>
+            <span 
+              className={cn('text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer', isAnnual ? 'text-white' : 'text-slate-500')} 
+              onClick={() => setIsAnnual(true)}
+            >
+              Annually <span className="text-[10px] whitespace-nowrap font-bold bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">Save 25%</span>
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-          {plans.map((plan) => {
+          {getPlans(isAnnual).map((plan) => {
             const c = colorMap[plan.color] || colorMap.slate;
             const Icon = plan.icon;
             return (
@@ -134,9 +159,9 @@ export function PricingPage() {
                   plan.popular && 'md:-translate-y-4 shadow-[0_0_60px_-10px_rgba(37,99,235,0.2)]'
                 )}
               >
-                {c.badge && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-blue-600 text-xs font-bold text-white">
-                    {c.badge}
+                {(plan.badge || c.badge) && (
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-blue-600 text-xs font-bold text-white whitespace-nowrap">
+                    {plan.badge || c.badge}
                   </div>
                 )}
 

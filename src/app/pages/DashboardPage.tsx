@@ -85,10 +85,12 @@ export function DashboardPage() {
   const usedPct = user ? Math.round((user.uploadsUsed / user.uploadsLimit) * 100) : 0;
 
   useEffect(() => {
+    if (!user) return; // Wait until authentication completes
+    setLoading(true);
     apiGetReports()
       .then(res => { setReports(res.reports); setLoading(false); })
       .catch(() => setLoading(false));
-  }, []);
+  }, [user]);
 
   const filteredReports = reports.filter(r =>
     r.file_name.toLowerCase().includes(searchQuery.toLowerCase()) ||

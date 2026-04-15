@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { jsPDF } from 'jspdf';
-import { apiGetReport } from '../../lib/api';
+import { apiGetSharedReport } from '../../lib/api';
 import type { ReportResponse } from '../../lib/schema';
 import { cn } from '../../lib/utils';
 
@@ -310,7 +310,7 @@ export function SharePage() {
       return;
     }
 
-    apiGetReport(reportId)
+    apiGetSharedReport(reportId)
       .then(res => {
         if (!res) { setNotFound(true); }
         else { setReport(mapApiToReport(res)); }
@@ -744,27 +744,27 @@ export function SharePage() {
         <div className="absolute bottom-0 right-0 w-1/4 h-1/4 rounded-full bg-blue-500/[0.04] blur-[100px]" />
       </div>
 
-      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#060608]/90 backdrop-blur-xl">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#060608]/90 backdrop-blur-md">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="w-6 h-6 rounded-lg bg-blue-600 flex items-center justify-center">
-              <Shield size={14} className="text-white" />
-            </div>
-            <span className="font-semibold text-sm tracking-tight text-white hidden xs:inline sm:inline">ContractCheck</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 font-semibold uppercase tracking-wider hidden xs:inline sm:inline">AI</span>
+            <Shield className="w-6 h-6 text-blue-400" />
+            <span className="font-semibold tracking-tight text-white">ContractCheck</span>
+            <span className="hidden sm:inline-flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 text-[10px] font-semibold uppercase tracking-wider">
+              AI
+            </span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={handleDownload}
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white border border-white/[0.06] hover:border-white/10 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white border border-white/[0.06] hover:border-white/10 px-3 py-2 rounded-lg transition-colors cursor-pointer"
             >
-              <Download size={13} /> <span className="hidden md:inline">Export PDF</span>
+              <Download size={15} /> <span className="hidden md:inline">Export PDF</span>
             </button>
             <Link
               to="/signup"
-              className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 sm:px-4 py-1.5 rounded-lg font-semibold transition-colors"
+              className="flex items-center gap-1.5 text-sm bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
             >
-              <ExternalLink size={13} /> <span className="hidden sm:inline">Analyze Free Contract</span><span className="sm:hidden">Analyze</span>
+              <ExternalLink size={15} /> <span className="hidden sm:inline">Analyze Free Contract</span><span className="sm:hidden">Analyze</span>
             </Link>
           </div>
         </div>

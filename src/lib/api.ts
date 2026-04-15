@@ -150,29 +150,63 @@ export async function apiGetAnalysisStatus(reportId: string): Promise<AnalysisSt
 
 // ─── Share ────────────────────────────────────────────────────────────────────
 
-export async function apiShareReport(reportId: string, expiresInDays?: number): Promise<ShareReportResponse> {
+export async function apiShareReport(reportId: string): Promise<ShareReportResponse> {
   const userId = await getUserId();
   
-  // We didn't create a shared_reports table yet. Here is a rough implementation
-  // using basic inserts if it existed. Wait, let's just error cleanly if the table is missing.
-  const token = 'share_' + reportId.substring(0,8) + '_' + Date.now();
-  
-  const { error } = await supabase.from('shared_reports').insert({
-    report_id: reportId,
-    shared_by_user_id: userId,
-    share_token: token,
-    expires_at: expiresInDays ? new Date(Date.now() + expiresInDays * 86400000).toISOString() : null
-  });
+  // Make the report public
+  const { error } = await supabase
+    .from('reports')
+    .update({ is_shared: true })
+    .eq('id', reportId)
+    .eq('user_id', userId);
 
-  // If you haven't created the shared_reports table, it will fail gracefully here.
-  if (error && error.code !== '42P01') { 
+  if (error) {
     throw new Error('Could not share report: ' + error.message);
   }
 
   return {
-    share_url: `${window.location.origin}/share/${token}`, // Use token instead of ID for security
-    share_token: token,
-    expires_at: expiresInDays ? new Date(Date.now() + expiresInDays * 86400000).toISOString() : null,
+    share_url: `${window.location.origin}/share/${reportId}`, // Use the report ID for linking
+    share_token: reportId, 
+    expires_at: null,
+  };
+}
+
+export async function apiGetSharedReport(reportId: string): Promise<ReportResponse | null> {
+  // Purposefully DO NOT call getUserId() here. 
+  // RLS (Row Level Security) prevents unauthorized reading internally.
+  // We rely fully on the fact that `is_shared = true` controls the access.
+
+  // Fetch the core report
+  const { data: report, error: repError } = await supabase
+    .from('reports')
+    .select('*')
+    .eq('id', reportId)
+    .single();
+
+  if (repError || !report) return null;
+
+  const { data: clauses } = await supabase
+    .from('clauses')
+    .select('*, issues:clause_issues(*), suggestions:clause_suggestions(*)')
+    .eq('report_id', reportId)
+    .order('order_index', { ascending: true });
+
+  const mappedClauses = (clauses || []).map((c: any) => ({
+    id: c.id,
+    report_id: c.report_id,
+    title: c.title,
+    original_text: c.original_text,
+    risk_level: c.risk_level,
+    relevant_law: c.relevant_law,
+    order_index: c.order_index,
+    created_at: c.created_at,
+    issues: c.issues || [],
+    suggestions: c.suggestions || []
+  }));
+
+  return {
+    report,
+    clauses: mappedClauses,
   };
 }
 

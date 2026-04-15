@@ -20,6 +20,7 @@ const PLANS = [
     badge: 'Save 25%',
     icon: Zap,
     features: ['50 analyses/month', 'All regulation checks', 'AI fix suggestions', 'PDF export & sharing', 'Priority support'],
+    periodLabel: '/yr',
   },
   {
     id: 'enterprise',
@@ -94,7 +95,7 @@ export function PaymentPage() {
                     <p className="font-semibold text-white mb-1">{plan.name}</p>
                     <p className="text-2xl font-black mb-3">
                       {plan.priceLabel ? plan.priceLabel : `₹${plan.price.toLocaleString()}`}
-                      {!plan.priceLabel && <span className="text-sm font-normal text-slate-500 ml-1">/mo</span>}
+                      {!plan.priceLabel && <span className="text-sm font-normal text-slate-500 ml-1">{(plan as any).periodLabel || '/mo'}</span>}
                     </p>
                     <ul className="space-y-1.5">
                       {plan.features.map((f, i) => (

@@ -8,7 +8,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { jsPDF, GState } from 'jspdf';
 import { AppLayout } from '../components/AppLayout';
-import { apiGetReport } from '../../lib/api';
+import { apiGetReport, apiShareReport } from '../../lib/api';
 import type { ReportResponse } from '../../lib/schema';
 import { cn } from '../../lib/utils';
 
@@ -263,6 +263,7 @@ export function ResultPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
 
   useEffect(() => {
@@ -317,10 +318,21 @@ export function ResultPage() {
   const totalIssues = report.clauses.reduce((sum, c) => sum + c.issues.length, 0);
   const totalSuggestions = report.clauses.reduce((sum, c) => sum + c.suggestions.length, 0);
 
-  const handleShare = () => {
-    navigator.clipboard.writeText(`${window.location.origin}/share/${report.id}`).catch(() => {});
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+
+
+  const handleShare = async () => {
+    try {
+      setSharing(true);
+      const res = await apiShareReport(report.id);
+      await navigator.clipboard.writeText(res.share_url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to share report. Ensure you own this report and try again.');
+    } finally {
+      setSharing(false);
+    }
   };
 
   const handleDownload = () => {
@@ -742,25 +754,25 @@ export function ResultPage() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-8 flex-wrap gap-4"
+          className="flex items-center justify-between mb-8 gap-4"
         >
           <button
             onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 text-xs sm:text-sm text-slate-400 hover:text-white transition-colors cursor-pointer w-full sm:w-auto justify-center sm:justify-start"
+            className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
           >
             <ArrowLeft size={16} /> Back to Dashboard
           </button>
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-end">
+          <div className="flex items-center gap-3">
             <button
               onClick={handleDownload}
-              className="flex items-center gap-2 text-sm text-slate-400 hover:text-white border border-white/10 hover:border-white/20 px-4 py-2 rounded-xl transition-colors cursor-pointer"
+              className="flex items-center gap-2 text-sm text-slate-400 hover:text-white border border-white/10 hover:border-white/20 px-4 py-2 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
             >
               <Download size={15} /> Export PDF
             </button>
             <button
               onClick={handleShare}
               className={cn(
-                'flex items-center gap-2 text-sm text-white px-4 py-2 rounded-xl transition-all cursor-pointer',
+                'flex items-center gap-2 text-sm text-white px-4 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap',
                 copied ? 'bg-emerald-600' : 'bg-blue-600 hover:bg-blue-500'
               )}
             >
