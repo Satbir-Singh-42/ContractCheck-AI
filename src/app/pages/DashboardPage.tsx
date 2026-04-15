@@ -97,11 +97,21 @@ export function DashboardPage() {
 
   const highRiskCount = reports.filter(r => r.overall_risk === 'High').length;
 
+  const avgCompliance = reports.length 
+    ? Math.round(reports.reduce((acc, r) => acc + (r.compliance_score || 0), 0) / reports.length)
+    : 0;
+
+  const completedReports = reports.filter(r => r.completed_at && r.status === 'completed');
+  const avgTurnaroundSecs = completedReports.length
+    ? Math.round(completedReports.reduce((acc, r) => acc + (new Date(r.completed_at!).getTime() - new Date(r.created_at).getTime()), 0) / completedReports.length / 1000)
+    : 0;
+  const turnaroundStr = avgTurnaroundSecs > 0 ? `~${avgTurnaroundSecs}s` : '0s';
+
   const stats = [
     { label: 'Reports Generated',  value: loading ? '…' : reports.length, icon: FileText,       color: 'text-blue-400',    bg: 'bg-blue-500/10'    },
     { label: 'High Risk Found',    value: loading ? '…' : highRiskCount,   icon: AlertTriangle,  color: 'text-red-400',     bg: 'bg-red-500/10'     },
-    { label: 'Issues Resolved',    value: 4,                               icon: CheckCircle,    color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-    { label: 'Avg. Turnaround',    value: '~8s',                           icon: Clock,          color: 'text-amber-400',   bg: 'bg-amber-500/10'   },
+    { label: 'Avg. Compliance',    value: loading ? '…' : `${avgCompliance}%`, icon: CheckCircle,    color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+    { label: 'Avg. Turnaround',    value: loading ? '…' : turnaroundStr,                           icon: Clock,          color: 'text-amber-400',   bg: 'bg-amber-500/10'   },
   ];
 
   return (

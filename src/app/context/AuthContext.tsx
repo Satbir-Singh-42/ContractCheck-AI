@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { apiLogin, apiSignup, apiLogout } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 
 export interface User {
   id: string;
@@ -26,54 +26,88 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const stored = localStorage.getItem('cc_user');
-    if (stored) {
-      try { setUser(JSON.parse(stored)); } catch { /* ignore */ }
-    }
-    setIsLoading(false);
-  }, []);
+  // Helper to fetch extended profile data from the profiles table
+  const loadProfile = async (authId: string, email: string | undefined): Promise<User | null> => {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', authId)
+      .single();
 
-  const persistUser = (u: User) => {
-    setUser(u);
-    localStorage.setItem('cc_user', JSON.stringify(u));
+    if (error || !profile) {
+      console.warn('Profile not found for authenticated user', error);
+      return null;
+    }
+
+    return {
+      id: profile.id,
+      name: profile.name,
+      email: email || profile.email,
+      plan: profile.plan === 'enterprise' ? 'pro' : profile.plan,
+      uploadsUsed: profile.uploads_used || 0,
+      uploadsLimit: profile.uploads_limit || 3,
+    };
   };
 
-  const login = async (email: string, password: string) => {
-    const res = await apiLogin({ email, password });
-    const u: User = {
-      id: res.user.id,
-      name: res.user.name,
-      email: res.user.email,
-      plan: res.user.plan === 'enterprise' ? 'pro' : res.user.plan,
-      uploadsUsed: res.user.uploads_used,
-      uploadsLimit: res.user.uploads_limit,
+  useEffect(() => {
+    let mounted = true;
+
+    async function getInitialSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user && mounted) {
+        const u = await loadProfile(session.user.id, session.user.email);
+        setUser(u);
+      }
+      if (mounted) setIsLoading(false);
+    }
+    
+    getInitialSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!session) {
+        if (mounted) setUser(null);
+      } else if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+        const u = await loadProfile(session.user.id, session.user.email);
+        if (mounted) setUser(u);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
     };
-    persistUser(u);
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
   };
 
   const signup = async (name: string, email: string, password: string) => {
-    const res = await apiSignup({ name, email, password });
-    const u: User = {
-      id: res.user.id,
-      name: res.user.name,
-      email: res.user.email,
-      plan: res.user.plan === 'enterprise' ? 'pro' : res.user.plan,
-      uploadsUsed: res.user.uploads_used,
-      uploadsLimit: res.user.uploads_limit,
-    };
-    persistUser(u);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name,
+        }
+      }
+    });
+    if (error) throw new Error(error.message);
   };
 
-  const logout = () => {
-    apiLogout();
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('cc_user');
   };
 
-  const updateUser = (updates: Partial<User>) => {
+  const updateUser = async (updates: Partial<User>) => {
     if (!user) return;
-    persistUser({ ...user, ...updates });
+    setUser({ ...user, ...updates });
+    // Keep backend in sync
+    if (updates.name) {
+      await supabase.from('profiles').update({ name: updates.name }).eq('id', user.id);
+    }
   };
 
   return (
