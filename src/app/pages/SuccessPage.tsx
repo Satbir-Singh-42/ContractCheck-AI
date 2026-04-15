@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { CheckCircle, Zap, ArrowRight } from 'lucide-react';
+import { motion } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
 
 export function SuccessPage() {
@@ -19,8 +20,13 @@ export function SuccessPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-[80vh] flex items-center justify-center px-4">
-        <div className="text-center max-w-[440px]">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="min-h-[70vh] flex items-center justify-center px-4"
+      >
+        <div className="bg-[#0B0B0E] border border-white/[0.06] rounded-3xl p-8 max-w-[440px] w-full text-center shadow-2xl">
           {/* Animated Check */}
           <div className="relative mx-auto w-24 h-24 mb-8">
             <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping" />
@@ -63,7 +69,7 @@ export function SuccessPage() {
             Auto-redirecting in {count}s...
           </p>
         </div>
-      </div>
+      </motion.div>
     </AppLayout>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Shield, Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 
 export function SignupPage() {
@@ -47,7 +48,11 @@ export function SignupPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#060608] text-white flex">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen bg-[#060608] text-white flex"
+    >
       {/* Left Panel */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-gradient-to-br from-[#0B0B14] to-[#060608] border-r border-white/[0.05] relative overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none" />
@@ -162,6 +167,6 @@ export function SignupPage() {
           </p>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

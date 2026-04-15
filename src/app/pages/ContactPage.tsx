@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router';
-import { Shield, Mail, MapPin, Phone, Send, ArrowLeft } from 'lucide-react';
+import { Shield, Mail, MapPin, Phone, Send } from 'lucide-react';
 import { PublicNavbar } from '../components/PublicNavbar';
+import { motion } from 'motion/react';
 
 function BrandLogo({ size = 24 }: { size?: number }) {
   return (
@@ -24,7 +25,12 @@ export function ContactPage() {
     <div className="min-h-screen bg-[#060608] text-white">
       <PublicNavbar />
 
-      <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+      <motion.main 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24"
+      >
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Get in Touch</h1>
           <p className="text-lg text-slate-400 max-w-[560px] mx-auto">
@@ -150,7 +156,7 @@ export function ContactPage() {
             )}
           </div>
         </div>
-      </main>
+      </motion.main>
 
       {/* Footer */}
       <footer className="border-t border-white/[0.05] bg-[#060608] py-8">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
 import { XCircle, RefreshCw, MessageSquare } from 'lucide-react';
+import { motion } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
 
 export function FailurePage() {
@@ -8,7 +9,12 @@ export function FailurePage() {
 
   return (
     <AppLayout>
-      <div className="min-h-[80vh] flex items-center justify-center px-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="min-h-[80vh] flex items-center justify-center px-4"
+      >
         <div className="text-center max-w-[440px]">
           <div className="relative mx-auto w-24 h-24 mb-8">
             <div className="relative w-24 h-24 rounded-full bg-red-500/10 border-2 border-red-500/30 flex items-center justify-center">
@@ -57,7 +63,7 @@ export function FailurePage() {
             Need help? Email us at <span className="text-slate-500">support@contractcheck.ai</span>
           </p>
         </div>
-      </div>
+      </motion.div>
     </AppLayout>
   );
 }

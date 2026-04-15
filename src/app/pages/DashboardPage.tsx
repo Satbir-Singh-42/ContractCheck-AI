@@ -4,6 +4,7 @@ import {
   Upload, FileText, AlertTriangle, CheckCircle, Clock,
   TrendingUp, ChevronRight, Plus, Search, Loader2,
 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
 import { apiGetReports } from '../../lib/api';
@@ -116,7 +117,12 @@ export function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-10">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="max-w-[1200px] mx-auto px-4 sm:px-6 py-10"
+      >
 
         {/* Welcome Banner */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
@@ -224,7 +230,7 @@ export function DashboardPage() {
             </>
           )}
         </div>
-      </div>
+      </motion.div>
     </AppLayout>
   );
 }

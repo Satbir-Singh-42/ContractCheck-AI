@@ -6,6 +6,7 @@ import {
   Eye, EyeOff, X, BellRing, Scale, Globe, Clock, Camera,
 } from 'lucide-react';
 import { AppLayout } from '../components/AppLayout';
+import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../../lib/utils';
 
@@ -81,7 +82,12 @@ export function ProfilePage() {
 
   return (
     <AppLayout>
-      <div className="max-w-[960px] mx-auto px-4 sm:px-6 py-10">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="max-w-[960px] mx-auto px-4 sm:px-6 py-10"
+      >
         {/* Page Header with Avatar */}
         <div className="flex items-center gap-5 mb-10">
           <div className="relative group">
@@ -482,7 +488,7 @@ export function ProfilePage() {
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Change Password Modal */}
       {showChangePassword && (

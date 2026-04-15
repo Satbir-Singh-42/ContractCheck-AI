@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { AppLayout } from '../components/AppLayout';
 import { CheckCircle, XCircle } from 'lucide-react';
+import { motion } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { apiGetAnalysisStatus } from '../../lib/api';
 
@@ -90,7 +91,12 @@ export function ProcessPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-[80vh] flex items-center justify-center px-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="min-h-[80vh] flex items-center justify-center px-4"
+      >
         <div className="w-full max-w-[520px]">
 
           {/* Circular Progress */}
@@ -193,7 +199,7 @@ export function ProcessPage() {
           )}
 
         </div>
-      </div>
+      </motion.div>
     </AppLayout>
   );
 }

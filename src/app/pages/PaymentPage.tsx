@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { CreditCard, Lock, CheckCircle, Zap, Building2, Shield, Loader2, ChevronRight } from 'lucide-react';
+import { motion } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
 import { cn } from '../../lib/utils';
 
@@ -55,7 +56,12 @@ export function PaymentPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-[860px] mx-auto px-4 sm:px-6 py-12">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-[860px] mx-auto px-4 sm:px-6 py-12"
+      >
         <div className="mb-8">
           <h1 className="text-2xl font-bold tracking-tight mb-1">Upgrade Your Plan</h1>
           <p className="text-sm text-slate-400">Get unlimited access to AI contract compliance checks.</p>
@@ -231,7 +237,7 @@ export function PaymentPage() {
             </button>
           </div>
         )}
-      </div>
+      </motion.div>
     </AppLayout>
   );
 }

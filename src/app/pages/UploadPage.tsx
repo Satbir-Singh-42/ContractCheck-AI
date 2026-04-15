@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { Upload, FileText, X, AlertCircle, CheckCircle, Shield, Lock, Zap } from 'lucide-react';
+import { motion } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
 import { apiUploadContract } from '../../lib/api';
@@ -84,7 +85,12 @@ export function UploadPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-[700px] mx-auto px-4 sm:px-6 py-12">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="max-w-[700px] mx-auto px-4 sm:px-6 py-12"
+      >
         <div className="mb-8">
           <h1 className="text-2xl font-bold tracking-tight mb-1">Upload Contract</h1>
           <p className="text-sm text-slate-400">
@@ -205,7 +211,7 @@ export function UploadPage() {
             <><Upload size={18} /> Analyze Contract</>
           )}
         </button>
-      </div>
+      </motion.div>
     </AppLayout>
   );
 }

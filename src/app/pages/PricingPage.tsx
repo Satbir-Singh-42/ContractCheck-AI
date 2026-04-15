@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import { CheckCircle, Zap, Building2, ArrowRight, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../../lib/utils';
+import { motion } from 'motion/react';
 import { PublicNavbar } from '../components/PublicNavbar';
 
 const plans = [
@@ -105,7 +106,12 @@ export function PricingPage() {
 
       <PublicNavbar />
 
-      <div className="relative max-w-[1100px] mx-auto px-4 sm:px-6 py-20">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative max-w-[1100px] mx-auto px-4 sm:px-6 py-20"
+      >
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
             Simple, Transparent Pricing
@@ -179,7 +185,7 @@ export function PricingPage() {
             </div>
           ))}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Eye, EyeOff, Loader2, Shield } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 
 export function LoginPage() {
@@ -46,7 +47,12 @@ export function LoginPage() {
     <div className="min-h-screen bg-[#060608] text-white flex items-center justify-center p-6">
       <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none" />
 
-      <div className="relative w-full max-w-[400px]">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative w-full max-w-[400px]"
+      >
         <Link to="/" className="flex items-center justify-center gap-2 hover:opacity-80 transition-opacity mb-10">
           <Shield className="w-7 h-7 text-blue-400" />
           <span className="font-semibold text-lg tracking-tight">ContractCheck</span>
@@ -114,7 +120,7 @@ export function LoginPage() {
             Sign up free
           </Link>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }

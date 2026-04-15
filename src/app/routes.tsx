@@ -1,6 +1,5 @@
 import React from 'react';
 import { createBrowserRouter, Outlet, useLocation } from 'react-router';
-import { AnimatePresence, motion } from 'motion/react';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -37,17 +36,9 @@ function RootLayout() {
   return (
     <AuthProvider>
       <ScrollToTop />
-      <AnimatePresence>
-        <motion.div
-          key={location.pathname}
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="min-h-screen flex flex-col w-full"
-        >
-          <Outlet />
-        </motion.div>
-      </AnimatePresence>
+      <div className="min-h-screen flex flex-col w-full">
+        <Outlet />
+      </div>
     </AuthProvider>
   );
 }
