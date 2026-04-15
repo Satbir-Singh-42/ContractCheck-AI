@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import {
   Upload, FileText, AlertTriangle, CheckCircle, Clock,
   TrendingUp, ChevronRight, Plus, Search, Loader2,
@@ -78,11 +78,13 @@ function ReportCard({ report }: { report: DBReport }) {
 export function DashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [reports, setReports] = useState<DBReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = React.useState('');
 
-  const usedPct = user ? Math.round((user.uploadsUsed / user.uploadsLimit) * 100) : 0;
+  const usedCount = loading ? (user?.uploadsUsed || 0) : reports.length;
+  const usedPct = user ? Math.round((usedCount / user.uploadsLimit) * 100) : 0;
 
   useEffect(() => {
     if (!user) return; // Wait until authentication completes
@@ -90,7 +92,7 @@ export function DashboardPage() {
     apiGetReports()
       .then(res => { setReports(res.reports); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [user]);
+  }, [user, location.key]);
 
   const filteredReports = reports.filter(r =>
     r.file_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -162,7 +164,7 @@ export function DashboardPage() {
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-semibold text-white">Free Plan Usage</p>
-                <p className="text-xs text-slate-400">{user.uploadsUsed}/{user.uploadsLimit} analyses used</p>
+                <p className="text-xs text-slate-400">{usedCount}/{user.uploadsLimit} analyses used</p>
               </div>
               <div className="w-full bg-white/10 rounded-full h-2">
                 <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${usedPct}%` }} />

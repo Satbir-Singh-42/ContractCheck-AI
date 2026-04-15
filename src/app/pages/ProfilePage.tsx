@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import { supabase } from '../../lib/supabase';
 import {
   User, Mail, Shield, Zap, Bell, Key, LogOut,
@@ -11,6 +11,8 @@ import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { CustomSelect } from '../components/CustomSelect';
 import { cn } from '../../lib/utils';
+import { apiGetReports } from '../../lib/api';
+import type { DBReport } from '../../lib/schema';
 
 type Tab = 'general' | 'plan' | 'notifications' | 'security';
 
@@ -24,7 +26,20 @@ const TABS: { id: Tab; label: string; icon: React.FC<{ size?: number; className?
 export function ProfilePage() {
   const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<Tab>('general');
+  const [reports, setReports] = useState<DBReport[]>([]);
+  const [loadingReports, setLoadingReports] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    setLoadingReports(true);
+    apiGetReports()
+      .then(res => { setReports(res.reports); setLoadingReports(false); })
+      .catch(() => setLoadingReports(false));
+  }, [user, location.key]);
+
+  const highRiskCount = reports.filter(r => r.overall_risk === 'High').length;
   
   // Form State
   const [name, setName] = useState(user?.name || '');
@@ -106,7 +121,8 @@ export function ProfilePage() {
 
   if (!user) return null;
 
-  const usedPct = Math.round((user.uploadsUsed / user.uploadsLimit) * 100);
+  const usedCount = loadingReports ? user.uploadsUsed : reports.length;
+  const usedPct = Math.round((usedCount / user.uploadsLimit) * 100);
 
   return (
     <AppLayout>
@@ -302,7 +318,7 @@ export function ProfilePage() {
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-slate-400">Analyses used this month</span>
-                        <span className="text-sm font-semibold text-white">{user.uploadsUsed} / {user.uploadsLimit}</span>
+                        <span className="text-sm font-semibold text-white">{usedCount} / {user.uploadsLimit}</span>
                       </div>
                       <div className="w-full bg-white/[0.06] rounded-full h-2.5">
                         <div
@@ -314,7 +330,7 @@ export function ProfilePage() {
                         />
                       </div>
                       <p className="text-xs text-slate-600 mt-1.5">
-                        {user.uploadsLimit - user.uploadsUsed} remaining &middot; Resets monthly
+                        {Math.max(0, user.uploadsLimit - usedCount)} remaining &middot; Resets monthly
                       </p>
                     </div>
                   </div>
@@ -323,8 +339,8 @@ export function ProfilePage() {
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { label: 'Reports Generated', value: '6', icon: FileText, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-                    { label: 'High Risk Found', value: '2', icon: AlertTriangle, color: 'text-red-400', bg: 'bg-red-500/10' },
+                    { label: 'Reports Generated', value: loadingReports ? '…' : reports.length.toString(), icon: FileText, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+                    { label: 'High Risk Found', value: loadingReports ? '…' : highRiskCount.toString(), icon: AlertTriangle, color: 'text-red-400', bg: 'bg-red-500/10' },
                   ].map(({ label, value, icon: Icon, color, bg }) => (
                     <div key={label} className="bg-[#0B0B0E] border border-white/[0.06] rounded-xl p-4 text-center">
                       <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2', bg)}>
