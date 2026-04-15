@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router';
+import { useLocation } from 'react-router';
 import {
   Upload, FileText, AlertTriangle, CheckCircle, Clock,
   TrendingUp, ChevronRight, Plus, Search, Loader2, MoreVertical, Trash2,
@@ -7,6 +7,7 @@ import {
 import { motion } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
+import { useTopNavigate } from '../hooks/useTopNavigate';
 import { apiGetReports, apiDeleteReport } from '../../lib/api';
 import type { DBReport } from '../../lib/schema';
 import { cn } from '../../lib/utils';
@@ -24,7 +25,7 @@ const RISK_DOT: Record<string, string> = {
 };
 
 function ReportCard({ report, onDelete }: { report: DBReport; onDelete: (id: string) => void }) {
-  const navigate = useNavigate();
+  const navigate = useTopNavigate();
   const score = report.compliance_score ?? 0;
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -124,7 +125,7 @@ function ReportCard({ report, onDelete }: { report: DBReport; onDelete: (id: str
 
 export function DashboardPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useTopNavigate();
   const location = useLocation();
   const [reports, setReports] = useState<DBReport[]>([]);
   const [loading, setLoading] = useState(true);

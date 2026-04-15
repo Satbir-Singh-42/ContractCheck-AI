@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { CheckCircle, Zap, Building2, ArrowRight, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../../lib/utils';
 import { motion } from 'motion/react';
 import { PublicNavbar } from '../components/PublicNavbar';
+import { useTopNavigate } from '../hooks/useTopNavigate';
 
 const getPlans = (isAnnual: boolean) => [
   {
@@ -91,7 +92,7 @@ const colorMap: Record<string, { border: string; bg: string; text: string; btn: 
 
 export function PricingPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useTopNavigate();
   const [isAnnual, setIsAnnual] = useState(false);
 
   const handleCta = (plan: string) => {

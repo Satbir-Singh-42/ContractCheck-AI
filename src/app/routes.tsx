@@ -24,6 +24,19 @@ const ProfilePage = React.lazy(() => import('./pages/ProfilePage').then((m) => (
 function ScrollToTop() {
   const location = useLocation();
 
+  const forceTop = React.useCallback(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+
+    // Mobile browsers can re-apply previous scroll position on navigation; re-assert on next frame.
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    });
+  }, []);
+
   React.useEffect(() => {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
@@ -31,8 +44,21 @@ function ScrollToTop() {
   }, []);
 
   React.useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  }, [location.pathname, location.search, location.hash]);
+    const handleInternalLinkClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      const internalLink = target?.closest('a[href^="/"]');
+      if (!internalLink) return;
+
+      forceTop();
+    };
+
+    document.addEventListener('click', handleInternalLinkClick, true);
+    return () => document.removeEventListener('click', handleInternalLinkClick, true);
+  }, [forceTop]);
+
+  React.useEffect(() => {
+    forceTop();
+  }, [location.pathname, location.search, location.hash, forceTop]);
 
   return null;
 }

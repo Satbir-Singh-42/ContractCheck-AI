@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { LayoutDashboard, Upload, User, LogOut, Menu, X, FileText, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTopNavigate } from '../hooks/useTopNavigate';
 import { cn } from '../../lib/utils';
 
 const NAV = [
@@ -12,7 +13,7 @@ const NAV = [
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useTopNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 

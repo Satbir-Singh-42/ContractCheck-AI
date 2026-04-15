@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
 import { CreditCard, Lock, CheckCircle, Zap, Building2, Shield, Loader2, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
+import { useTopNavigate } from '../hooks/useTopNavigate';
 import { cn } from '../../lib/utils';
 
 const PLANS = [
@@ -38,7 +38,7 @@ const PAYMENT_METHODS = [
 ];
 
 export function PaymentPage() {
-  const navigate = useNavigate();
+  const navigate = useTopNavigate();
   const [selectedPlan, setSelectedPlan] = useState('pro_monthly');
   const [selectedMethod, setSelectedMethod] = useState('razorpay');
   const [loading, setLoading] = useState(false);

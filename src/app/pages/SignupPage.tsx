@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { Shield, Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
+import { useTopNavigate } from '../hooks/useTopNavigate';
 
 export function SignupPage() {
   const { signup, user, isLoading } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useTopNavigate();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);

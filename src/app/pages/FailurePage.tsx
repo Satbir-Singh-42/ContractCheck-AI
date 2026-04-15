@@ -1,11 +1,11 @@
 import React from 'react';
-import { useNavigate } from 'react-router';
 import { XCircle, RefreshCw, MessageSquare } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
+import { useTopNavigate } from '../hooks/useTopNavigate';
 
 export function FailurePage() {
-  const navigate = useNavigate();
+  const navigate = useTopNavigate();
 
   return (
     <AppLayout>

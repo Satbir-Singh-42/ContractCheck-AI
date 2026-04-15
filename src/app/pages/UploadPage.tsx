@@ -1,9 +1,9 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router';
 import { Upload, FileText, X, AlertCircle, CheckCircle, Shield, Lock, Zap } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
+import { useTopNavigate } from '../hooks/useTopNavigate';
 import { apiUploadContract } from '../../lib/api';
 import { cn } from '../../lib/utils';
 
@@ -14,7 +14,7 @@ type Stage = 'idle' | 'uploading' | 'done' | 'error';
 
 export function UploadPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useTopNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);

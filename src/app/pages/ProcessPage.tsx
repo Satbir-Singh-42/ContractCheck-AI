@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import { AppLayout } from '../components/AppLayout';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { apiGetAnalysisStatus } from '../../lib/api';
+import { useTopNavigate } from '../hooks/useTopNavigate';
 
 const STEPS = [
   'Extracting text from document',
@@ -19,7 +20,7 @@ type AnalysisStatus = 'polling' | 'completed' | 'failed';
 
 export function ProcessPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const navigate = useTopNavigate();
 
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<AnalysisStatus>('polling');

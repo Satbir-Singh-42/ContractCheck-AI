@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router';
+import { useLocation } from 'react-router';
 import { supabase } from '../../lib/supabase';
 import {
   User, Mail, Shield, Zap, Bell, Key, LogOut,
@@ -9,6 +9,7 @@ import {
 import { AppLayout } from '../components/AppLayout';
 import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
+import { useTopNavigate } from '../hooks/useTopNavigate';
 import { CustomSelect } from '../components/CustomSelect';
 import { cn } from '../../lib/utils';
 import { apiGetReports } from '../../lib/api';
@@ -25,7 +26,7 @@ const TABS: { id: Tab; label: string; icon: React.FC<{ size?: number; className?
 
 export function ProfilePage() {
   const { user, logout, updateUser } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useTopNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<Tab>('general');
   const [reports, setReports] = useState<DBReport[]>([]);

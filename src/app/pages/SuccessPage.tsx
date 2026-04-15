@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
 import { CheckCircle, Zap, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
+import { useTopNavigate } from '../hooks/useTopNavigate';
 
 export function SuccessPage() {
-  const navigate = useNavigate();
+  const navigate = useTopNavigate();
   const [count, setCount] = useState(5);
 
   useEffect(() => {

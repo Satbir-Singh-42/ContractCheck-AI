@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams } from 'react-router';
 import {
   AlertTriangle, CheckCircle, XCircle, ChevronDown,
   Download, Share2, ArrowLeft, FileText, BookOpen, Lightbulb,
@@ -10,6 +10,7 @@ import { jsPDF, GState } from 'jspdf';
 import { AppLayout } from '../components/AppLayout';
 import { apiGetReport, apiShareReport, apiGetReportVersions, apiUploadContract, type ReportVersion } from '../../lib/api';
 import { useAuth } from '../context/AuthContext';
+import { useTopNavigate } from '../hooks/useTopNavigate';
 import type { ReportResponse } from '../../lib/schema';
 import { cn } from '../../lib/utils';
 
@@ -260,7 +261,7 @@ const FILTER_TABS: { key: FilterTab; label: string; color: string }[] = [
 export function ResultPage() {
   const { user } = useAuth();
   const { id } = useParams();
-  const navigate = useNavigate();
+  const navigate = useTopNavigate();
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
