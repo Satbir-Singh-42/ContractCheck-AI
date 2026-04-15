@@ -23,7 +23,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-[#060608] text-white flex flex-col">
+    <div className="min-h-screen w-full bg-[#060608] text-white flex flex-col">
       {/* Top Nav */}
       <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#060608]/90 md:backdrop-blur-md">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">

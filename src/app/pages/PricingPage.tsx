@@ -93,6 +93,15 @@ export function PricingPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isAnnual, setIsAnnual] = useState(false);
+  const [showDeferredContent, setShowDeferredContent] = useState(false);
+
+  React.useEffect(() => {
+    const rafId = window.requestAnimationFrame(() => {
+      setShowDeferredContent(true);
+    });
+
+    return () => window.cancelAnimationFrame(rafId);
+  }, []);
 
   const handleCta = (plan: string) => {
     if (plan === 'Free') {
@@ -105,7 +114,7 @@ export function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#060608] text-white relative overflow-x-hidden">
+    <div className="min-h-screen w-full bg-[#060608] text-white relative">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[420px] h-[220px] rounded-full bg-blue-600/8 blur-[80px] pointer-events-none sm:w-[800px] sm:h-[400px] sm:blur-[120px]" />
 
       <PublicNavbar />
@@ -146,70 +155,76 @@ export function PricingPage() {
           </div>
         </div>
 
-        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-          {getPlans(isAnnual).map((plan) => {
-            const c = colorMap[plan.color] || colorMap.slate;
-            const Icon = plan.icon;
-            return (
-              <div
-                key={plan.name}
-                className={cn(
-                  'relative min-w-0 rounded-2xl border p-6 sm:p-8 flex flex-col',
-                  c.border, c.bg,
-                  plan.popular && 'md:-translate-y-4 shadow-[0_0_60px_-10px_rgba(37,99,235,0.2)]'
-                )}
-              >
-                {(plan.badge || c.badge) && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-blue-600 text-xs font-bold text-white whitespace-nowrap">
-                    {plan.badge || c.badge}
+        {showDeferredContent ? (
+          <>
+            <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+              {getPlans(isAnnual).map((plan) => {
+                const c = colorMap[plan.color] || colorMap.slate;
+                const Icon = plan.icon;
+                return (
+                  <div
+                    key={plan.name}
+                    className={cn(
+                      'relative min-w-0 rounded-2xl border p-6 sm:p-8 flex flex-col',
+                      c.border, c.bg,
+                      plan.popular && 'md:-translate-y-4 shadow-[0_0_60px_-10px_rgba(37,99,235,0.2)]'
+                    )}
+                  >
+                    {(plan.badge || c.badge) && (
+                      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-blue-600 text-xs font-bold text-white whitespace-nowrap">
+                        {plan.badge || c.badge}
+                      </div>
+                    )}
+
+                    <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-4', `bg-${plan.color}-500/10`)}>
+                      <Icon size={20} className={c.text} />
+                    </div>
+
+                    <h3 className="text-lg font-bold mb-1">{plan.name}</h3>
+                    <p className="text-sm text-slate-500 mb-4">{plan.description}</p>
+
+                    <div className="mb-6">
+                      <span className="text-4xl font-bold">{plan.price}</span>
+                      <span className="text-sm text-slate-500 ml-2">/{plan.period}</span>
+                    </div>
+
+                    <ul className="space-y-3 mb-8 flex-1">
+                      {plan.features.map((f, i) => (
+                        <li key={i} className="flex items-start gap-2.5 text-sm text-slate-300 break-words">
+                          <CheckCircle size={15} className={cn('mt-0.5 shrink-0', c.text)} />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+
+                    <button
+                      onClick={() => handleCta(plan.name)}
+                      className={cn('w-full py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 text-sm', c.btn)}
+                    >
+                      {plan.cta} <ArrowRight size={15} />
+                    </button>
                   </div>
-                )}
-
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-4', `bg-${plan.color}-500/10`)}>
-                  <Icon size={20} className={c.text} />
-                </div>
-
-                <h3 className="text-lg font-bold mb-1">{plan.name}</h3>
-                <p className="text-sm text-slate-500 mb-4">{plan.description}</p>
-
-                <div className="mb-6">
-                  <span className="text-4xl font-bold">{plan.price}</span>
-                  <span className="text-sm text-slate-500 ml-2">/{plan.period}</span>
-                </div>
-
-                <ul className="space-y-3 mb-8 flex-1">
-                  {plan.features.map((f, i) => (
-                    <li key={i} className="flex items-start gap-2.5 text-sm text-slate-300 break-words">
-                      <CheckCircle size={15} className={cn('mt-0.5 shrink-0', c.text)} />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-
-                <button
-                  onClick={() => handleCta(plan.name)}
-                  className={cn('w-full py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 text-sm', c.btn)}
-                >
-                  {plan.cta} <ArrowRight size={15} />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* FAQ Row */}
-        <div className="mt-14 sm:mt-20 md:mt-24 grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-center">
-          {[
-            { q: 'Is my data secure?', a: 'All documents are processed in-memory and never stored permanently without your permission.' },
-            { q: 'Can I upgrade later?', a: 'Yes. Upgrade or downgrade at any time. Billing is prorated automatically.' },
-            { q: 'What regulations are covered?', a: 'DPDP Act 2023, GST/CGST Act, Indian Contract Act 1872, and Labour Laws.' },
-          ].map(({ q, a }, i) => (
-            <div key={i} className="text-left">
-              <p className="font-semibold text-white mb-2">{q}</p>
-              <p className="text-sm text-slate-400 leading-relaxed">{a}</p>
+                );
+              })}
             </div>
-          ))}
-        </div>
+
+            {/* FAQ Row */}
+            <div className="mt-14 sm:mt-20 md:mt-24 grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-center">
+              {[
+                { q: 'Is my data secure?', a: 'All documents are processed in-memory and never stored permanently without your permission.' },
+                { q: 'Can I upgrade later?', a: 'Yes. Upgrade or downgrade at any time. Billing is prorated automatically.' },
+                { q: 'What regulations are covered?', a: 'DPDP Act 2023, GST/CGST Act, Indian Contract Act 1872, and Labour Laws.' },
+              ].map(({ q, a }, i) => (
+                <div key={i} className="text-left">
+                  <p className="font-semibold text-white mb-2">{q}</p>
+                  <p className="text-sm text-slate-400 leading-relaxed">{a}</p>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="h-[420px] sm:h-[520px]" aria-hidden="true" />
+        )}
       </motion.div>
     </div>
   );

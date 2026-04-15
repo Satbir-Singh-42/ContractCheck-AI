@@ -2,15 +2,15 @@ import React from 'react';
 import { createBrowserRouter, Outlet, useLocation } from 'react-router';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { LandingPage } from './pages/LandingPage';
+import { PricingPage } from './pages/PricingPage';
+import { AboutPage } from './pages/AboutPage';
 
-const LandingPage = React.lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
 const SignupPage = React.lazy(() => import('./pages/SignupPage').then((m) => ({ default: m.SignupPage })));
 const LoginPage = React.lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
-const PricingPage = React.lazy(() => import('./pages/PricingPage').then((m) => ({ default: m.PricingPage })));
 const SharePage = React.lazy(() => import('./pages/SharePage').then((m) => ({ default: m.SharePage })));
 const ContactPage = React.lazy(() => import('./pages/ContactPage').then((m) => ({ default: m.ContactPage })));
 const PrivacyPage = React.lazy(() => import('./pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })));
-const AboutPage = React.lazy(() => import('./pages/AboutPage').then((m) => ({ default: m.AboutPage })));
 
 const DashboardPage = React.lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
 const UploadPage = React.lazy(() => import('./pages/UploadPage').then((m) => ({ default: m.UploadPage })));
@@ -34,7 +34,9 @@ function ScrollToTop() {
 function RouteFallback() {
   return (
     <div className="min-h-screen bg-[#060608] text-white flex items-center justify-center px-4">
-      <div className="text-sm text-slate-400">Loading page...</div>
+      <div className="flex flex-col items-center justify-center gap-3" role="status" aria-live="polite" aria-label="Loading page">
+        <div className="h-10 w-10 rounded-full border-2 border-blue-500/40 border-t-blue-400 animate-spin" />
+      </div>
     </div>
   );
 }
@@ -51,7 +53,7 @@ function RootLayout() {
   return (
     <AuthProvider>
       <ScrollToTop />
-      <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
+      <div className="min-h-screen flex flex-col w-full">
         <Outlet />
       </div>
     </AuthProvider>
@@ -72,14 +74,14 @@ export const router = createBrowserRouter([
     Component: RootLayout,
     children: [
       // Public routes
-      { index: true, element: <LazyPage Component={LandingPage} /> },
+      { index: true, element: <LandingPage /> },
       { path: 'signup', element: <LazyPage Component={SignupPage} /> },
       { path: 'login', element: <LazyPage Component={LoginPage} /> },
-      { path: 'pricing', element: <LazyPage Component={PricingPage} /> },
+      { path: 'pricing', element: <PricingPage /> },
       { path: 'share/:reportId', element: <LazyPage Component={SharePage} /> },
       { path: 'contact', element: <LazyPage Component={ContactPage} /> },
       { path: 'privacy', element: <LazyPage Component={PrivacyPage} /> },
-      { path: 'about', element: <LazyPage Component={AboutPage} /> },
+      { path: 'about', element: <AboutPage /> },
       // Protected routes
       {
         Component: ProtectedLayout,

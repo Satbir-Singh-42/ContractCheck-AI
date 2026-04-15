@@ -7,9 +7,6 @@ import { useAuth } from '../context/AuthContext';
 const prefetchedRouteChunks = new Set<string>();
 
 const ROUTE_CHUNK_LOADERS: Record<string, () => Promise<unknown>> = {
-  '/': () => import('../pages/LandingPage'),
-  '/pricing': () => import('../pages/PricingPage'),
-  '/about': () => import('../pages/AboutPage'),
   '/login': () => import('../pages/LoginPage'),
   '/signup': () => import('../pages/SignupPage'),
   '/dashboard': () => import('../pages/DashboardPage'),
@@ -76,10 +73,9 @@ export function PublicNavbar() {
 
   // Warm likely next pages shortly after initial paint to reduce first-click delay.
   React.useEffect(() => {
-    prefetchRouteChunk('/pricing');
-    prefetchRouteChunk('/about');
     prefetchRouteChunk('/login');
     prefetchRouteChunk('/signup');
+    prefetchRouteChunk('/dashboard');
   }, []);
 
   // Close mobile menu on route change

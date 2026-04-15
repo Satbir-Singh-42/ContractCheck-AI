@@ -332,8 +332,18 @@ function Footer() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export function AboutPage() {
+  const [showDeferredSections, setShowDeferredSections] = React.useState(false);
+
+  React.useEffect(() => {
+    const rafId = window.requestAnimationFrame(() => {
+      setShowDeferredSections(true);
+    });
+
+    return () => window.cancelAnimationFrame(rafId);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30 overflow-x-clip">
+    <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30">
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-3/4 h-1/2 rounded-full bg-blue-600/[0.05] blur-[90px] sm:w-1/2 sm:blur-[150px]" />
         <div className="absolute bottom-0 right-0 w-3/5 h-2/5 rounded-full bg-purple-600/[0.03] blur-[75px] sm:w-2/5 sm:blur-[130px]" />
@@ -342,11 +352,23 @@ export function AboutPage() {
         <PublicNavbar />
         <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
           <HeroSection />
-          <CoreCapabilities />
-          <UseCasesSection />
-          <RegulationsSection />
+
+          {showDeferredSections ? (
+            <>
+              <CoreCapabilities />
+              <UseCasesSection />
+              <RegulationsSection />
+            </>
+          ) : (
+            <div className="py-14 sm:py-20 lg:py-24" aria-hidden="true" />
+          )}
         </main>
-        <BottomCTA />
+
+        {showDeferredSections ? (
+          <BottomCTA />
+        ) : (
+          <section className="py-16 sm:py-24 lg:py-32" aria-hidden="true" />
+        )}
         <Footer />
       </div>
     </div>
