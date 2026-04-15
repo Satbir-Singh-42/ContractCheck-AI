@@ -16,6 +16,10 @@ export function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
 
+  const handleFooterLinkClick = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
@@ -163,8 +167,8 @@ export function ContactPage() {
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-600">
           <p>&copy; {new Date().getFullYear()} ContractCheck AI. All rights reserved.</p>
           <div className="flex items-center gap-6">
-            <Link to="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
-            <Link to="/" className="hover:text-slate-300 transition-colors">Home</Link>
+            <Link to="/privacy" onClick={handleFooterLinkClick} className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
+            <Link to="/" onClick={handleFooterLinkClick} className="hover:text-slate-300 transition-colors">Home</Link>
           </div>
         </div>
       </footer>

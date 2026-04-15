@@ -65,7 +65,7 @@ const ARCH_ITEMS = [
 ];
 
 const OUTPUT_STATS = [
-  { value: '<30s', label: 'Analysis Time' },
+  { value: '30s', label: 'Analysis Time' },
   { value: '4', label: 'Laws Covered' },
   { value: '3', label: 'Risk Levels' },
 ];
@@ -288,6 +288,10 @@ function BottomCTA() {
 
 // ─── Footer ───────────────────────────────────────────────────────────────────
 function Footer() {
+  const handleFooterLinkClick = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  };
+
   return (
     <footer className="border-t border-white/[0.05] bg-[#060608] pt-12 sm:pt-20 pb-8 sm:pb-10">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -302,13 +306,13 @@ function Footer() {
           <div className="flex flex-wrap gap-x-20 gap-y-10 text-sm">
             <div className="flex flex-col gap-4">
               <span className="font-bold text-white mb-2 uppercase tracking-wider text-xs">Product</span>
-              <Link to="/pricing" className="text-slate-400 font-medium hover:text-blue-400 transition-colors">Pricing Options</Link>
-              <Link to="/upload" className="text-slate-400 font-medium hover:text-blue-400 transition-colors">Analyze Contract</Link>
+              <Link to="/pricing" onClick={handleFooterLinkClick} className="text-slate-400 font-medium hover:text-blue-400 transition-colors">Pricing Options</Link>
+              <Link to="/upload" onClick={handleFooterLinkClick} className="text-slate-400 font-medium hover:text-blue-400 transition-colors">Analyze Contract</Link>
             </div>
             <div className="flex flex-col gap-4">
               <span className="font-bold text-white mb-2 uppercase tracking-wider text-xs">Company</span>
-              <Link to="/about" className="text-slate-400 font-medium hover:text-blue-400 transition-colors">About Us</Link>
-              <Link to="/privacy" className="text-slate-400 font-medium hover:text-blue-400 transition-colors">Privacy Policy</Link>
+              <Link to="/about" onClick={handleFooterLinkClick} className="text-slate-400 font-medium hover:text-blue-400 transition-colors">About Us</Link>
+              <Link to="/privacy" onClick={handleFooterLinkClick} className="text-slate-400 font-medium hover:text-blue-400 transition-colors">Privacy Policy</Link>
             </div>
           </div>
         </div>

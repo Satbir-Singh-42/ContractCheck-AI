@@ -44,8 +44,8 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#060608] text-white flex items-center justify-center p-6">
-      <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none" />
+    <div className="relative min-h-screen bg-[#060608] text-white flex items-center justify-center px-4 py-6 sm:p-6 overflow-x-clip">
+      <div className="absolute top-[-8%] left-1/2 -translate-x-1/2 w-[280px] h-[180px] rounded-full bg-blue-600/10 blur-[70px] pointer-events-none sm:w-[520px] sm:h-[320px] sm:blur-[110px]" />
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}

@@ -194,7 +194,7 @@ export function DashboardPage() {
           </div>
           <button
             onClick={() => navigate('/upload')}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-[0_0_20px_-5px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_-5px_rgba(37,99,235,0.6)]"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-[0_0_20px_-5px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_-5px_rgba(37,99,235,0.6)]"
           >
             <Plus size={16} /> New Analysis
           </button>
@@ -227,7 +227,7 @@ export function DashboardPage() {
             </div>
             <button
               onClick={() => navigate('/pricing')}
-              className="flex items-center gap-2 bg-white text-black px-5 py-2 rounded-xl font-semibold text-sm hover:bg-slate-100 transition-colors shrink-0"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white text-black px-5 py-2 rounded-xl font-semibold text-sm hover:bg-slate-100 transition-colors shrink-0"
             >
               <TrendingUp size={15} /> Upgrade to Pro
             </button>

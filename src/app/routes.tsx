@@ -22,10 +22,12 @@ const FailurePage = React.lazy(() => import('./pages/FailurePage').then((m) => (
 const ProfilePage = React.lazy(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 
 function ScrollToTop() {
-  const { pathname } = useLocation();
-  React.useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+  const location = useLocation();
+
+  React.useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.key]);
+
   return null;
 }
 

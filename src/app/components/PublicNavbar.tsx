@@ -4,6 +4,25 @@ import { Shield, Menu, X, ArrowRight } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../context/AuthContext';
 
+const prefetchedRouteChunks = new Set<string>();
+
+const ROUTE_CHUNK_LOADERS: Record<string, () => Promise<unknown>> = {
+  '/': () => import('../pages/LandingPage'),
+  '/pricing': () => import('../pages/PricingPage'),
+  '/about': () => import('../pages/AboutPage'),
+  '/login': () => import('../pages/LoginPage'),
+  '/signup': () => import('../pages/SignupPage'),
+  '/dashboard': () => import('../pages/DashboardPage'),
+};
+
+function prefetchRouteChunk(path: string) {
+  const load = ROUTE_CHUNK_LOADERS[path];
+  if (!load || prefetchedRouteChunks.has(path)) return;
+
+  prefetchedRouteChunks.add(path);
+  void load();
+}
+
 function BrandLogo({ size = 24 }: { size?: number }) {
   return (
     <div
@@ -27,6 +46,15 @@ export function PublicNavbar() {
   const location = useLocation();
   const { user } = useAuth();
 
+  const scrollWindowToTop = React.useCallback(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, []);
+
+  const handleNavLinkClick = React.useCallback((path: string) => {
+    prefetchRouteChunk(path);
+    scrollWindowToTop();
+  }, [scrollWindowToTop]);
+
   React.useEffect(() => {
     let rafId = 0;
 
@@ -46,6 +74,14 @@ export function PublicNavbar() {
     };
   }, []);
 
+  // Warm likely next pages shortly after initial paint to reduce first-click delay.
+  React.useEffect(() => {
+    prefetchRouteChunk('/pricing');
+    prefetchRouteChunk('/about');
+    prefetchRouteChunk('/login');
+    prefetchRouteChunk('/signup');
+  }, []);
+
   // Close mobile menu on route change
   React.useEffect(() => {
     setMobileOpen(false);
@@ -59,7 +95,7 @@ export function PublicNavbar() {
         : 'border-transparent bg-transparent'
     )}>
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
+        <Link to="/" onClick={() => handleNavLinkClick('/')} className="flex items-center gap-2 transition-opacity hover:opacity-80">
           <BrandLogo size={28} />
           <span className="font-bold text-lg tracking-tight">ContractCheck</span>
           <span className="hidden sm:inline-flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 text-[10px] font-semibold uppercase tracking-wider">
@@ -72,6 +108,10 @@ export function PublicNavbar() {
             <Link
               key={link.to}
               to={link.to}
+              onClick={() => handleNavLinkClick(link.to)}
+              onMouseEnter={() => prefetchRouteChunk(link.to)}
+              onFocus={() => prefetchRouteChunk(link.to)}
+              onTouchStart={() => prefetchRouteChunk(link.to)}
               className={cn(
                 'text-sm font-medium transition-colors px-3 py-2 rounded-lg hover:bg-white/5',
                 location.pathname === link.to
@@ -86,15 +126,27 @@ export function PublicNavbar() {
 
         <div className="flex items-center gap-3">
           {user ? (
-            <Link to="/dashboard" className="hidden sm:inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-[0_0_20px_-5px_rgba(37,99,235,0.5)]">
+            <Link
+              to="/dashboard"
+              onClick={() => handleNavLinkClick('/dashboard')}
+              className="hidden sm:inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-[0_0_20px_-5px_rgba(37,99,235,0.5)]"
+            >
               Dashboard <ArrowRight size={16} />
             </Link>
           ) : (
             <>
-              <Link to="/login" className="hidden sm:block text-sm font-medium text-slate-300 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/5">
+              <Link
+                to="/login"
+                onClick={() => handleNavLinkClick('/login')}
+                className="hidden sm:inline-flex items-center justify-center text-sm font-medium text-slate-300 hover:text-white transition-colors px-5 py-2.5 rounded-full border border-white/[0.1] hover:border-white/[0.18] hover:bg-white/5"
+              >
                 Sign in
               </Link>
-              <Link to="/signup" className="hidden sm:inline-flex bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-[0_0_20px_-5px_rgba(37,99,235,0.5)]">
+              <Link
+                to="/signup"
+                onClick={() => handleNavLinkClick('/signup')}
+                className="hidden sm:inline-flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-[0_0_20px_-5px_rgba(37,99,235,0.5)]"
+              >
                 Get Started Free
               </Link>
             </>
@@ -118,6 +170,10 @@ export function PublicNavbar() {
               <Link
                 key={link.to}
                 to={link.to}
+                onClick={() => handleNavLinkClick(link.to)}
+                onMouseEnter={() => prefetchRouteChunk(link.to)}
+                onFocus={() => prefetchRouteChunk(link.to)}
+                onTouchStart={() => prefetchRouteChunk(link.to)}
                 className={cn(
                   'text-sm font-medium transition-colors px-4 py-3 rounded-lg',
                   location.pathname === link.to
@@ -130,15 +186,27 @@ export function PublicNavbar() {
             ))}
             <div className="border-t border-white/[0.06] mt-2 pt-3 flex flex-col gap-2">
               {user ? (
-                <Link to="/dashboard" className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-full text-sm font-semibold transition-all text-center flex items-center justify-center gap-2">
+                <Link
+                  to="/dashboard"
+                  onClick={() => handleNavLinkClick('/dashboard')}
+                  className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-full text-sm font-semibold transition-all text-center flex items-center justify-center gap-2"
+                >
                   Go to Dashboard <ArrowRight size={16} />
                 </Link>
               ) : (
                 <>
-                  <Link to="/login" className="text-sm font-medium text-slate-300 hover:text-white transition-colors px-4 py-3 rounded-lg hover:bg-white/5">
+                  <Link
+                    to="/login"
+                    onClick={() => handleNavLinkClick('/login')}
+                    className="text-sm font-medium text-slate-300 hover:text-white transition-colors px-4 py-3 rounded-lg hover:bg-white/5 flex items-center justify-center"
+                  >
                     Sign in
                   </Link>
-                  <Link to="/signup" className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-full text-sm font-semibold transition-all text-center">
+                  <Link
+                    to="/signup"
+                    onClick={() => handleNavLinkClick('/signup')}
+                    className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-full text-sm font-semibold transition-all text-center flex items-center justify-center"
+                  >
                     Get Started Free
                   </Link>
                 </>
