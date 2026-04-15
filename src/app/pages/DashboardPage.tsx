@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import {
   Upload, FileText, AlertTriangle, CheckCircle, Clock,
-  TrendingUp, ChevronRight, Plus, Search, Loader2,
+  TrendingUp, ChevronRight, Plus, Search, Loader2, MoreVertical, Trash2,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
-import { apiGetReports } from '../../lib/api';
+import { apiGetReports, apiDeleteReport } from '../../lib/api';
 import type { DBReport } from '../../lib/schema';
 import { cn } from '../../lib/utils';
 
@@ -23,14 +23,32 @@ const RISK_DOT: Record<string, string> = {
   Low:    'bg-emerald-500',
 };
 
-function ReportCard({ report }: { report: DBReport }) {
+function ReportCard({ report, onDelete }: { report: DBReport; onDelete: (id: string) => void }) {
   const navigate = useNavigate();
   const score = report.compliance_score ?? 0;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen(false);
+    if (!confirm(`Delete "${report.file_name}"? This cannot be undone.`)) return;
+    setDeleting(true);
+    try {
+      await apiDeleteReport(report.id);
+      onDelete(report.id);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('Delete error:', msg);
+      alert(`Delete failed: ${msg}`);
+      setDeleting(false);
+    }
+  };
 
   return (
     <div
-      onClick={() => navigate(`/result/${report.id}`)}
-      className="group bg-[#0B0B0E] border border-white/[0.06] hover:border-white/[0.12] rounded-2xl p-6 cursor-pointer transition-all hover:bg-[#0f0f12]"
+      onClick={() => { if (!menuOpen) navigate(`/result/${report.id}`); }}
+      className="group relative bg-[#0B0B0E] border border-white/[0.06] hover:border-white/[0.12] rounded-2xl p-6 cursor-pointer transition-all hover:bg-[#0f0f12]"
     >
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="flex items-center gap-3 min-w-0">
@@ -44,10 +62,39 @@ function ReportCard({ report }: { report: DBReport }) {
             </p>
           </div>
         </div>
-        <span className={cn('text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full border shrink-0', RISK_COLORS[report.overall_risk])}>
-          <span className={cn('inline-block w-1.5 h-1.5 rounded-full mr-1', RISK_DOT[report.overall_risk])} />
-          {report.overall_risk} Risk
-        </span>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className={cn('text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full border', RISK_COLORS[report.overall_risk])}>
+            <span className={cn('inline-block w-1.5 h-1.5 rounded-full mr-1', RISK_DOT[report.overall_risk])} />
+            {report.overall_risk} Risk
+          </span>
+
+          {/* 3-dot menu */}
+          <div className="relative" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setMenuOpen(o => !o)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
+            >
+              <MoreVertical size={16} />
+            </button>
+
+            {menuOpen && (
+              <>
+                {/* Click-away backdrop */}
+                <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+                <div className="absolute right-0 top-full mt-1 w-40 bg-[#111115] border border-white/[0.1] rounded-xl shadow-2xl overflow-hidden z-20">
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                    {deleting ? 'Deleting…' : 'Delete Report'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       <p className="text-xs text-slate-500 mb-4 truncate">Parties: {report.parties}</p>
@@ -84,8 +131,11 @@ export function DashboardPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = React.useState('');
 
-  const usedCount = loading ? (user?.uploadsUsed || 0) : reports.length;
-  const usedPct = user ? Math.round((usedCount / user.uploadsLimit) * 100) : 0;
+  // Use the PERMANENT counter from the user profile.
+  // This only goes up on upload and NEVER decreases on delete,
+  // so users cannot game the free plan by deleting old reports.
+  const usedCount = user?.uploadsUsed || 0;
+  const usedPct = user ? Math.min(100, Math.round((usedCount / user.uploadsLimit) * 100)) : 0;
 
   useEffect(() => {
     if (!user) return; // Wait until authentication completes
@@ -219,7 +269,11 @@ export function DashboardPage() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {filteredReports.map(report => (
-                  <ReportCard key={report.id} report={report} />
+                  <ReportCard
+                    key={report.id}
+                    report={report}
+                    onDelete={(id) => setReports(prev => prev.filter(r => r.id !== id))}
+                  />
                 ))}
               </div>
 

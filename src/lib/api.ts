@@ -56,13 +56,20 @@ export async function apiUploadContract(file: File, parentReportId?: string, ver
 
   if (dbError) throw new Error(`DB error: ${dbError.message}`);
 
+  // 3. Permanently increment uploads_used counter.
+  //    This NEVER decreases on delete — so users cannot game the free limit
+  //    by deleting old reports. Only root uploads (not versioned revisions) cost a slot.
+  if (!parentReportId) {
+    await supabase.rpc('increment_uploads_used', { user_id_input: userId });
+  }
+
   // Note: Your AI RAG via n8n should trigger on this INSERT event from Supabase 
   // or you can fire a webhook to n8n here directly.
 
   return {
     report_id: report.id,
     status: 'processing',
-    estimated_seconds: 45, // Time for AI to finish
+    estimated_seconds: 45,
   };
 }
 
@@ -108,6 +115,16 @@ export async function apiGetReports(page = 1, perPage = 10): Promise<ReportListR
     page,
     per_page: perPage,
   };
+}
+
+export async function apiDeleteReport(reportId: string): Promise<void> {
+  const userId = await getUserId();
+  const { error } = await supabase
+    .from('reports')
+    .delete()
+    .eq('id', reportId)
+    .eq('user_id', userId); // enforce ownership
+  if (error) throw new Error(error.message);
 }
 
 export async function apiGetReport(reportId: string): Promise<ReportResponse | null> {

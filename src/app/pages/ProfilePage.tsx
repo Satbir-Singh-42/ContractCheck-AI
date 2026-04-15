@@ -40,6 +40,12 @@ export function ProfilePage() {
   }, [user, location.key]);
 
   const highRiskCount = reports.filter(r => r.overall_risk === 'High').length;
+
+  // Permanent usage counter — comes from profiles.uploads_used.
+  // This never decreases on delete so users cannot game the free limit.
+  const usedCount = user?.uploadsUsed || 0;
+  const usedPct = user ? Math.min(100, Math.round((usedCount / user.uploadsLimit) * 100)) : 0;
+  const remaining = Math.max(0, (user?.uploadsLimit || 3) - usedCount);
   
   // Form State
   const [name, setName] = useState(user?.name || '');
@@ -120,9 +126,6 @@ export function ProfilePage() {
   };
 
   if (!user) return null;
-
-  const usedCount = loadingReports ? user.uploadsUsed : reports.length;
-  const usedPct = Math.round((usedCount / user.uploadsLimit) * 100);
 
   return (
     <AppLayout>
@@ -317,7 +320,7 @@ export function ProfilePage() {
                   <div className="space-y-4">
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-slate-400">Analyses used this month</span>
+                        <span className="text-sm text-slate-400">Analyses used</span>
                         <span className="text-sm font-semibold text-white">{usedCount} / {user.uploadsLimit}</span>
                       </div>
                       <div className="w-full bg-white/[0.06] rounded-full h-2.5">
@@ -330,7 +333,7 @@ export function ProfilePage() {
                         />
                       </div>
                       <p className="text-xs text-slate-600 mt-1.5">
-                        {Math.max(0, user.uploadsLimit - usedCount)} remaining &middot; Resets monthly
+                        {remaining} remaining &middot; Resets monthly
                       </p>
                     </div>
                   </div>

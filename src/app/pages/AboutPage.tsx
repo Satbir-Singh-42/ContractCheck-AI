@@ -272,11 +272,11 @@ function BottomCTA() {
           <div className="relative z-10 flex-1 flex flex-col gap-8 md:pl-10 lg:border-l border-white/[0.08]">
             <p className="text-slate-300 text-lg leading-relaxed font-light">ContractCheck AI represents the monumental shift from manual, error-prone contract review to intelligent, regulation-aware compliance analysis. Built exclusively for Indian businesses. Powered by AI.</p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/signup" className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl font-bold transition-all duration-300 shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_40px_rgba(37,99,235,0.6)] hover:-translate-y-1 w-full sm:w-auto">
-                <Upload size={18} /> Start Analyzing Free
+              <Link to="/signup" className="flex items-center justify-center gap-2.5 bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl font-bold transition-all duration-300 shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_40px_rgba(37,99,235,0.6)] hover:-translate-y-1 w-full sm:w-auto whitespace-nowrap">
+                <Upload size={22} /> Start Analyzing Free
               </Link>
-              <Link to="/pricing" className="flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-white border border-white/20 hover:bg-white/10 hover:border-white/30 transition-all duration-300 w-full sm:w-auto">
-                View Pricing <ArrowRight size={18} />
+              <Link to="/pricing" className="flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl font-bold text-white border border-white/20 hover:bg-white/10 hover:border-white/30 transition-all duration-300 w-full sm:w-auto whitespace-nowrap">
+                View Pricing <ArrowRight size={22} />
               </Link>
             </div>
           </div>

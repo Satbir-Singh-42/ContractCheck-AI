@@ -201,3 +201,26 @@ CREATE TRIGGER on_auth_user_created
 --    Public: FALSE
 --    Purpose: High-security storage for uploaded PDF/Docx files awaiting AI analysis.
 -- =========================================================================================
+
+
+-- =========================================================================================
+-- 6. RPC FUNCTIONS
+-- =========================================================================================
+
+-- increment_uploads_used
+-- Called by the frontend after every new contract upload.
+-- Uses SECURITY DEFINER so it runs as DB owner and bypasses RLS safely.
+-- This counter is PERMANENT: it only goes up, never decreases on report delete.
+-- This prevents users gaming the free plan by deleting old reports.
+CREATE OR REPLACE FUNCTION public.increment_uploads_used(user_id_input UUID)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE profiles
+  SET uploads_used = uploads_used + 1
+  WHERE id = user_id_input;
+END;
+$$;

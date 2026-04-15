@@ -71,10 +71,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function getInitialSession() {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
+
+        // Stale/invalid refresh token — purge and bail out cleanly
+        if (error) {
+          console.warn('Session error (likely stale token):', error.message);
+          await supabase.auth.signOut();
+          if (mounted) setIsLoading(false);
+          return;
+        }
         
         if (session?.user && mounted) {
           try {
-             // If this takes a long time (e.g. Supabase cold start), we wait patiently.
              const u = await loadProfile(session.user.id, session.user.email);
              if (mounted) setUser(u);
           } catch (profileError) {
@@ -95,7 +102,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (e) {
-        console.warn('Session init failed', e);
+        console.warn('Session init failed:', e);
+        // Purge any corrupted local storage tokens
+        await supabase.auth.signOut();
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -104,9 +113,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     getInitialSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!session) {
+      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' && !session) {
+        // Session gone or refresh token rejected — clear user state
+        if (mounted) { setUser(null); setIsLoading(false); }
+      } else if (!session) {
         if (mounted) setUser(null);
-      } else if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+      } else if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
         const u = await loadProfile(session.user.id, session.user.email);
         if (mounted) setUser(u);
       }
