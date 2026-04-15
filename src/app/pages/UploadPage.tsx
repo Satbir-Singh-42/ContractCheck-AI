@@ -1,14 +1,15 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import { Upload, FileText, X, AlertCircle, Info, CheckCircle, Shield, Lock, Zap } from 'lucide-react';
+import { Upload, FileText, X, AlertCircle, CheckCircle, Shield, Lock, Zap } from 'lucide-react';
 import { AppLayout } from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
+import { apiUploadContract } from '../../lib/api';
 import { cn } from '../../lib/utils';
 
 const ACCEPTED = ['.pdf', '.docx', '.doc', '.txt'];
 const MAX_MB = 10;
 
-type Stage = 'idle' | 'uploading' | 'done';
+type Stage = 'idle' | 'uploading' | 'done' | 'error';
 
 export function UploadPage() {
   const { user } = useAuth();
@@ -45,22 +46,41 @@ export function UploadPage() {
     if (!file) return;
     setStage('uploading');
     setProgress(0);
+    setError('');
 
-    // Simulated upload + processing progress
-    const intervals = [10, 30, 55, 75, 90, 100];
-    for (const p of intervals) {
-      await new Promise(r => setTimeout(r, 300 + Math.random() * 200));
-      setProgress(p);
+    // Animate progress while the real upload is happening
+    const ticker = setInterval(() => {
+      setProgress(p => (p < 82 ? p + 6 : p));
+    }, 200);
+
+    try {
+      const response = await apiUploadContract(file);
+      clearInterval(ticker);
+      setProgress(100);
+      setStage('done');
+
+      // Brief moment to show "Upload complete" then hand off to ProcessPage
+      await new Promise(r => setTimeout(r, 400));
+      navigate(`/process/${response.report_id}`);
+    } catch (err: unknown) {
+      clearInterval(ticker);
+      const msg = err instanceof Error ? err.message : 'Upload failed. Please try again.';
+      setError(msg);
+      setStage('error');
+      setProgress(0);
     }
+  };
 
-    setStage('done');
-    // Navigate to a mock process ID
-    await new Promise(r => setTimeout(r, 400));
-    navigate('/process/proc_' + Date.now());
+  const resetFile = () => {
+    setFile(null);
+    setProgress(0);
+    setStage('idle');
+    setError('');
   };
 
   const remaining = user ? user.uploadsLimit - user.uploadsUsed : 0;
   const canUpload = remaining > 0;
+  const isUploading = stage === 'uploading';
 
   return (
     <AppLayout>
@@ -68,7 +88,7 @@ export function UploadPage() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold tracking-tight mb-1">Upload Contract</h1>
           <p className="text-sm text-slate-400">
-            Upload a contract to analyze it against Indian regulations — DPDP Act 2023, GST rules, Labour Laws & Contract Act.
+            Upload a contract to analyze it against Indian regulations — DPDP Act 2023, GST rules, Labour Laws &amp; Contract Act.
           </p>
         </div>
 
@@ -78,7 +98,8 @@ export function UploadPage() {
             <div>
               <p className="text-sm font-semibold text-amber-300">Upload limit reached</p>
               <p className="text-xs text-amber-400/70 mt-0.5">
-                You've used all {user?.uploadsLimit} free analyses. <button onClick={() => navigate('/pricing')} className="underline hover:no-underline">Upgrade to Pro</button> for more.
+                You've used all {user?.uploadsLimit} free analyses.{' '}
+                <button onClick={() => navigate('/pricing')} className="underline hover:no-underline">Upgrade to Pro</button> for more.
               </p>
             </div>
           </div>
@@ -89,11 +110,11 @@ export function UploadPage() {
           onDragOver={e => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
-          onClick={() => !file && canUpload && inputRef.current?.click()}
+          onClick={() => !file && canUpload && !isUploading && inputRef.current?.click()}
           className={cn(
             'relative border-2 border-dashed rounded-2xl transition-all',
             dragOver && canUpload ? 'border-blue-500 bg-blue-500/5' : 'border-white/10',
-            !file && canUpload ? 'cursor-pointer hover:border-white/20 hover:bg-white/[0.02]' : '',
+            !file && canUpload && !isUploading ? 'cursor-pointer hover:border-white/20 hover:bg-white/[0.02]' : '',
             !canUpload ? 'opacity-50 cursor-not-allowed' : ''
           )}
         >
@@ -102,7 +123,7 @@ export function UploadPage() {
             type="file"
             accept={ACCEPTED.join(',')}
             className="hidden"
-            disabled={!canUpload}
+            disabled={!canUpload || isUploading}
             onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
           />
 
@@ -130,17 +151,17 @@ export function UploadPage() {
                   <p className="text-sm font-semibold text-white truncate">{file.name}</p>
                   <p className="text-xs text-slate-500 mt-0.5">{(file.size / 1024).toFixed(1)} KB</p>
                 </div>
-                {stage === 'idle' && (
+                {stage === 'idle' || stage === 'error' ? (
                   <button
-                    onClick={e => { e.stopPropagation(); setFile(null); setProgress(0); setStage('idle'); }}
+                    onClick={e => { e.stopPropagation(); resetFile(); }}
                     className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
                   >
                     <X size={15} className="text-slate-400" />
                   </button>
-                )}
+                ) : null}
               </div>
 
-              {stage !== 'idle' && (
+              {stage !== 'idle' && stage !== 'error' && (
                 <div className="mt-4">
                   <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
                     <span>{stage === 'done' ? 'Upload complete!' : 'Uploading & extracting text...'}</span>
@@ -198,10 +219,10 @@ export function UploadPage() {
         {/* Action Button */}
         <button
           onClick={handleAnalyze}
-          disabled={!file || stage !== 'idle' || !canUpload}
+          disabled={!file || isUploading || stage === 'done' || !canUpload}
           className="w-full mt-6 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-[0_0_30px_-5px_rgba(37,99,235,0.4)]"
         >
-          {stage === 'uploading' ? (
+          {isUploading ? (
             <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Uploading...</>
           ) : stage === 'done' ? (
             <><CheckCircle size={18} /> Redirecting to analysis...</>

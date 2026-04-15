@@ -1,28 +1,30 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router';
-import { Upload, FileText, AlertTriangle, CheckCircle, Clock, TrendingUp, ChevronRight, Plus, Search, Filter } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
+import {
+  Upload, FileText, AlertTriangle, CheckCircle, Clock,
+  TrendingUp, ChevronRight, Plus, Search, Loader2,
+} from 'lucide-react';
 import { AppLayout } from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
-import { mockReports, Report } from '../../lib/mockData';
+import { apiGetReports } from '../../lib/api';
+import type { DBReport } from '../../lib/schema';
 import { cn } from '../../lib/utils';
 
 const RISK_COLORS: Record<string, string> = {
-  High: 'text-red-400 bg-red-500/10 border-red-500/20',
+  High:   'text-red-400 bg-red-500/10 border-red-500/20',
   Medium: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-  Low: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+  Low:    'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
 };
 
 const RISK_DOT: Record<string, string> = {
-  High: 'bg-red-500',
+  High:   'bg-red-500',
   Medium: 'bg-amber-500',
-  Low: 'bg-emerald-500',
+  Low:    'bg-emerald-500',
 };
 
-function ReportCard({ report }: { report: Report }) {
+function ReportCard({ report }: { report: DBReport }) {
   const navigate = useNavigate();
-  const safe = report.clauses.filter(c => c.riskLevel === 'Safe').length;
-  const risky = report.clauses.filter(c => c.riskLevel === 'Risky').length;
-  const bad = report.clauses.filter(c => c.riskLevel === 'Non-compliant').length;
+  const score = report.compliance_score ?? 0;
 
   return (
     <div
@@ -35,35 +37,38 @@ function ReportCard({ report }: { report: Report }) {
             <FileText size={18} className="text-slate-400" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-white truncate">{report.name}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{report.type} · {report.date}</p>
+            <p className="text-sm font-semibold text-white truncate">{report.file_name}</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {report.contract_type} · {report.created_at?.slice(0, 10)}
+            </p>
           </div>
         </div>
-        <span className={cn('text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full border shrink-0', RISK_COLORS[report.overallRisk])}>
-          <span className={cn('inline-block w-1.5 h-1.5 rounded-full mr-1', RISK_DOT[report.overallRisk])} />
-          {report.overallRisk} Risk
+        <span className={cn('text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full border shrink-0', RISK_COLORS[report.overall_risk])}>
+          <span className={cn('inline-block w-1.5 h-1.5 rounded-full mr-1', RISK_DOT[report.overall_risk])} />
+          {report.overall_risk} Risk
         </span>
       </div>
 
       <p className="text-xs text-slate-500 mb-4 truncate">Parties: {report.parties}</p>
 
       <div className="flex items-center gap-3">
-        {safe > 0 && (
-          <div className="flex items-center gap-1 text-xs text-emerald-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" /> {safe} Safe
+        {/* Compliance score bar */}
+        <div className="flex-1">
+          <div className="flex items-center justify-between text-[10px] text-slate-600 mb-1">
+            <span>Compliance</span>
+            <span>{score}%</span>
           </div>
-        )}
-        {risky > 0 && (
-          <div className="flex items-center gap-1 text-xs text-amber-400">
-            <span className="w-2 h-2 rounded-full bg-amber-500" /> {risky} Risky
+          <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+            <div
+              className={cn(
+                'h-full rounded-full',
+                score >= 70 ? 'bg-emerald-500' : score >= 40 ? 'bg-amber-500' : 'bg-red-500'
+              )}
+              style={{ width: `${score}%` }}
+            />
           </div>
-        )}
-        {bad > 0 && (
-          <div className="flex items-center gap-1 text-xs text-red-400">
-            <span className="w-2 h-2 rounded-full bg-red-500" /> {bad} Non-compliant
-          </div>
-        )}
-        <ChevronRight size={14} className="ml-auto text-slate-600 group-hover:text-slate-400 transition-colors" />
+        </div>
+        <ChevronRight size={14} className="text-slate-600 group-hover:text-slate-400 transition-colors shrink-0" />
       </div>
     </div>
   );
@@ -72,25 +77,37 @@ function ReportCard({ report }: { report: Report }) {
 export function DashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [reports, setReports] = useState<DBReport[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = React.useState('');
+
   const usedPct = user ? Math.round((user.uploadsUsed / user.uploadsLimit) * 100) : 0;
 
-  const filteredReports = mockReports.filter(r =>
-    r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    r.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  useEffect(() => {
+    apiGetReports()
+      .then(res => { setReports(res.reports); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const filteredReports = reports.filter(r =>
+    r.file_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    r.contract_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
     r.parties.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const highRiskCount = reports.filter(r => r.overall_risk === 'High').length;
+
   const stats = [
-    { label: 'Reports Generated', value: mockReports.length, icon: FileText, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-    { label: 'High Risk Found', value: mockReports.filter(r => r.overallRisk === 'High').length, icon: AlertTriangle, color: 'text-red-400', bg: 'bg-red-500/10' },
-    { label: 'Issues Resolved', value: 4, icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-    { label: 'Avg. Turnaround', value: '~8s', icon: Clock, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+    { label: 'Reports Generated',  value: loading ? '…' : reports.length, icon: FileText,       color: 'text-blue-400',    bg: 'bg-blue-500/10'    },
+    { label: 'High Risk Found',    value: loading ? '…' : highRiskCount,   icon: AlertTriangle,  color: 'text-red-400',     bg: 'bg-red-500/10'     },
+    { label: 'Issues Resolved',    value: 4,                               icon: CheckCircle,    color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+    { label: 'Avg. Turnaround',    value: '~8s',                           icon: Clock,          color: 'text-amber-400',   bg: 'bg-amber-500/10'   },
   ];
 
   return (
     <AppLayout>
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-10">
+
         {/* Welcome Banner */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
           <div>
@@ -130,10 +147,7 @@ export function DashboardPage() {
                 <p className="text-xs text-slate-400">{user.uploadsUsed}/{user.uploadsLimit} analyses used</p>
               </div>
               <div className="w-full bg-white/10 rounded-full h-2">
-                <div
-                  className="bg-blue-500 h-2 rounded-full transition-all"
-                  style={{ width: `${usedPct}%` }}
-                />
+                <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${usedPct}%` }} />
               </div>
             </div>
             <button
@@ -160,33 +174,44 @@ export function DashboardPage() {
                   className="bg-[#0B0B0E] border border-white/[0.08] rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/40 transition-colors w-[200px]"
                 />
               </div>
-              <span className="text-xs text-slate-500">{filteredReports.length} total</span>
+              {!loading && (
+                <span className="text-xs text-slate-500">{filteredReports.length} total</span>
+              )}
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredReports.map(report => (
-              <ReportCard key={report.id} report={report} />
-            ))}
-          </div>
 
-          {filteredReports.length === 0 && mockReports.length > 0 && (
-            <div className="text-center py-12">
-              <Search size={32} className="text-slate-700 mx-auto mb-3" />
-              <p className="text-slate-400">No reports match your search.</p>
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 size={24} className="text-slate-600 animate-spin" />
             </div>
-          )}
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredReports.map(report => (
+                  <ReportCard key={report.id} report={report} />
+                ))}
+              </div>
 
-          {mockReports.length === 0 && (
-            <div className="text-center py-20">
-              <FileText size={40} className="text-slate-700 mx-auto mb-4" />
-              <p className="text-slate-400 mb-4">No reports yet. Upload your first contract.</p>
-              <button
-                onClick={() => navigate('/upload')}
-                className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl font-semibold text-sm"
-              >
-                Upload Contract
-              </button>
-            </div>
+              {filteredReports.length === 0 && reports.length > 0 && (
+                <div className="text-center py-12">
+                  <Search size={32} className="text-slate-700 mx-auto mb-3" />
+                  <p className="text-slate-400">No reports match your search.</p>
+                </div>
+              )}
+
+              {reports.length === 0 && (
+                <div className="text-center py-20">
+                  <FileText size={40} className="text-slate-700 mx-auto mb-4" />
+                  <p className="text-slate-400 mb-4">No reports yet. Upload your first contract.</p>
+                  <button
+                    onClick={() => navigate('/upload')}
+                    className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl font-semibold text-sm"
+                  >
+                    Upload Contract
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

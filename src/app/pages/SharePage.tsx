@@ -1,12 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router';
 import {
   CheckCircle, AlertTriangle, XCircle, ChevronDown, Shield,
-  FileText, Lightbulb, BookOpen, Download, ExternalLink
+  FileText, Lightbulb, BookOpen, Download, ExternalLink, Loader2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { getReportById, Clause, RiskLevel } from '../../lib/mockData';
+import { apiGetReport } from '../../lib/api';
+import type { ReportResponse } from '../../lib/schema';
 import { cn } from '../../lib/utils';
+
+// ─── Local UI Types ───────────────────────────────────────────────────
+
+type RiskLevel = 'Safe' | 'Risky' | 'Non-compliant';
+
+interface Clause {
+  id: string;
+  title: string;
+  originalText: string;
+  riskLevel: RiskLevel;
+  issues: string[];
+  suggestions: string[];
+  relevantLaw: string;
+}
+
+interface Report {
+  id: string;
+  name: string;
+  type: string;
+  parties: string;
+  overallRisk: 'High' | 'Medium' | 'Low';
+  date: string;
+  clauses: Clause[];
+}
+
+function mapApiToReport(data: ReportResponse): Report {
+  return {
+    id: data.report.id,
+    name: data.report.file_name,
+    type: data.report.contract_type,
+    parties: data.report.parties,
+    overallRisk: data.report.overall_risk,
+    date: data.report.created_at?.slice(0, 10) || '',
+    clauses: data.clauses.map(c => ({
+      id: c.id,
+      title: c.title,
+      originalText: c.original_text,
+      riskLevel: c.risk_level as RiskLevel,
+      issues: c.issues.map(i => i.description),
+      suggestions: c.suggestions.map(s => s.description),
+      relevantLaw: c.relevant_law,
+    })),
+  };
+}
 
 // ─── Score Ring ────────────────────────────────────────────────────────────────
 
@@ -190,17 +235,51 @@ function ClauseCard({ clause, index }: { clause: Clause; index: number }) {
 
 export function SharePage() {
   const { reportId } = useParams();
-  const report = getReportById(reportId || '');
+  const [report, setReport] = useState<Report | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  const safe = report?.clauses.filter(c => c.riskLevel === 'Safe').length ?? 0;
-  const risky = report?.clauses.filter(c => c.riskLevel === 'Risky').length ?? 0;
-  const bad = report?.clauses.filter(c => c.riskLevel === 'Non-compliant').length ?? 0;
-  const total = report?.clauses.length ?? 0;
-  const score = report ? Math.max(0, Math.round(100 - (bad * 25) - (risky * 10))) : 0;
-  const ocfg = report ? OVERALL_CONFIG[report.overallRisk] : OVERALL_CONFIG.Low;
+  useEffect(() => {
+    if (!reportId) { setNotFound(true); setLoading(false); return; }
+    apiGetReport(reportId)
+      .then(res => {
+        if (!res) { setNotFound(true); }
+        else { setReport(mapApiToReport(res)); }
+        setLoading(false);
+      })
+      .catch(() => { setNotFound(true); setLoading(false); });
+  }, [reportId]);
 
-  const totalIssues = report?.clauses.reduce((sum, c) => sum + c.issues.length, 0) ?? 0;
-  const totalSuggestions = report?.clauses.reduce((sum, c) => sum + c.suggestions.length, 0) ?? 0;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#060608] flex items-center justify-center">
+        <Loader2 size={32} className="text-blue-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (notFound || !report) {
+    return (
+      <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30 flex flex-col items-center justify-center text-center px-4">
+        <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5">
+          <XCircle size={28} className="text-red-400" />
+        </div>
+        <h2 className="text-xl font-bold mb-2">Report Not Found</h2>
+        <p className="text-slate-400 mb-6 max-w-sm">This shared report may have expired or doesn't exist.</p>
+        <Link to="/" className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm">
+          Go Home
+        </Link>
+      </div>
+    );
+  }
+
+  const safe = report.clauses.filter(c => c.riskLevel === 'Safe').length;
+  const risky = report.clauses.filter(c => c.riskLevel === 'Risky').length;
+  const bad = report.clauses.filter(c => c.riskLevel === 'Non-compliant').length;
+  const total = report.clauses.length;
+  const score = Math.max(0, Math.round(100 - (bad * 25) - (risky * 10)));
+  const ocfg = OVERALL_CONFIG[report.overallRisk] || OVERALL_CONFIG['High'];
+  const totalIssues = report.clauses.reduce((sum, c) => sum + c.issues.length, 0);
 
   return (
     <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30">
@@ -237,19 +316,7 @@ export function SharePage() {
         </div>
       </header>
 
-      {!report ? (
-        <div className="relative z-10 flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-          <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5">
-            <XCircle size={28} className="text-red-400" />
-          </div>
-          <h2 className="text-xl font-bold mb-2">Report Not Found</h2>
-          <p className="text-slate-400 mb-6 max-w-sm">This shared report may have expired or doesn't exist.</p>
-          <Link to="/" className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm">
-            Go Home
-          </Link>
-        </div>
-      ) : (
-        <div className="relative z-10 max-w-[900px] mx-auto px-4 sm:px-6 py-8">
+      <div className="relative z-10 max-w-[900px] mx-auto px-4 sm:px-6 py-8">
           {/* Public Banner */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -394,7 +461,6 @@ export function SharePage() {
             AI-generated report. Not legal advice. Powered by ContractCheck AI.
           </p>
         </div>
-      )}
     </div>
   );
 }

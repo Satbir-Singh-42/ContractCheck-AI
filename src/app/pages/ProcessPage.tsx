@@ -1,53 +1,99 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { AppLayout } from '../components/AppLayout';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { apiGetAnalysisStatus } from '../../lib/api';
 
 const STEPS = [
-  { label: 'Extracting text from document', duration: 1200 },
-  { label: 'Detecting contract clauses', duration: 1500 },
-  { label: 'Running compliance checks (DPDP, GST, Labour)', duration: 2000 },
-  { label: 'Scoring risk levels per clause', duration: 1200 },
-  { label: 'Generating AI fix suggestions', duration: 1800 },
-  { label: 'Building your report', duration: 800 },
+  'Extracting text from document',
+  'Detecting contract clauses',
+  'Running compliance checks (DPDP, GST, Labour)',
+  'Scoring risk levels per clause',
+  'Generating AI fix suggestions',
+  'Building your report',
 ];
 
+type AnalysisStatus = 'polling' | 'completed' | 'failed';
+
 export function ProcessPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [completed, setCompleted] = useState<number[]>([]);
-  const [done, setDone] = useState(false);
+
+  const [progress, setProgress] = useState(0);
+  const [status, setStatus] = useState<AnalysisStatus>('polling');
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // Drives the visual step animation independently for smooth UX
+  const [visibleStep, setVisibleStep] = useState(0);
 
   useEffect(() => {
-    let step = 0;
+    if (!id) return;
+    let cancelled = false;
+    let stepTimer: ReturnType<typeof setTimeout>;
+    let pollTimer: ReturnType<typeof setTimeout>;
 
-    const runStep = () => {
-      if (step >= STEPS.length) {
-        setDone(true);
-        setTimeout(() => navigate('/result/rep_12345'), 800);
-        return;
+    // Animate visual steps (UX layer — runs independently of API timing)
+    const animateStep = (step: number) => {
+      if (cancelled || step > STEPS.length) return;
+      setVisibleStep(step);
+      stepTimer = setTimeout(() => animateStep(step + 1), 1400);
+    };
+    animateStep(0);
+
+    // Real API polling loop
+    const poll = async () => {
+      if (cancelled) return;
+      try {
+        const res = await apiGetAnalysisStatus(id);
+        if (cancelled) return;
+
+        setProgress(res.progress_percent);
+
+        if (res.status === 'completed') {
+          clearTimeout(stepTimer);
+          setVisibleStep(STEPS.length);
+          setProgress(100);
+          setStatus('completed');
+          pollTimer = setTimeout(() => {
+            if (!cancelled) navigate(`/result/${id}`);
+          }, 900);
+        } else if (res.status === 'failed') {
+          clearTimeout(stepTimer);
+          setStatus('failed');
+          setErrorMsg(res.error_message);
+        } else {
+          // Still processing — re-poll in 2s
+          pollTimer = setTimeout(poll, 2000);
+        }
+      } catch {
+        // Network hiccup — retry in 3s
+        if (!cancelled) pollTimer = setTimeout(poll, 3000);
       }
-      setCurrentStep(step);
-      setTimeout(() => {
-        setCompleted(prev => [...prev, step]);
-        step++;
-        runStep();
-      }, STEPS[step].duration);
     };
 
-    const t = setTimeout(runStep, 400);
-    return () => clearTimeout(t);
-  }, [navigate]);
+    // Start first poll after a short delay to let the visual kick in
+    pollTimer = setTimeout(poll, 600);
 
-  const progress = Math.round((completed.length / STEPS.length) * 100);
+    return () => {
+      cancelled = true;
+      clearTimeout(stepTimer);
+      clearTimeout(pollTimer);
+    };
+  }, [id, navigate]);
+
+  const isDone = status === 'completed';
+  const isFailed = status === 'failed';
+  // Show the higher of API progress vs visual-step progress for a smooth bar
+  const displayProgress = isDone
+    ? 100
+    : Math.max(progress, Math.round((visibleStep / STEPS.length) * 100));
 
   return (
     <AppLayout>
       <div className="min-h-[80vh] flex items-center justify-center px-4">
         <div className="w-full max-w-[520px]">
-          {/* Animated Icon */}
+
+          {/* Circular Progress */}
           <div className="flex justify-center mb-10">
             <div className="relative w-24 h-24">
               <svg className="w-24 h-24 -rotate-90" viewBox="0 0 96 96">
@@ -55,17 +101,23 @@ export function ProcessPage() {
                 <circle
                   cx="48" cy="48" r="40" strokeWidth="4"
                   strokeDasharray={`${2 * Math.PI * 40}`}
-                  strokeDashoffset={`${2 * Math.PI * 40 * (1 - progress / 100)}`}
+                  strokeDashoffset={`${2 * Math.PI * 40 * (1 - displayProgress / 100)}`}
                   strokeLinecap="round"
-                  className={cn('transition-all duration-700', done ? 'stroke-emerald-500' : 'stroke-blue-500')}
+                  className={cn(
+                    'transition-all duration-700',
+                    isFailed ? 'stroke-red-500' :
+                    isDone  ? 'stroke-emerald-500' : 'stroke-blue-500'
+                  )}
                   fill="none"
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                {done ? (
+                {isFailed ? (
+                  <XCircle size={32} className="text-red-400" />
+                ) : isDone ? (
                   <CheckCircle size={32} className="text-emerald-400" />
                 ) : (
-                  <span className="text-xl font-bold text-white">{progress}%</span>
+                  <span className="text-xl font-bold text-white">{displayProgress}%</span>
                 )}
               </div>
             </div>
@@ -73,35 +125,39 @@ export function ProcessPage() {
 
           <div className="text-center mb-10">
             <h1 className="text-2xl font-bold tracking-tight mb-2">
-              {done ? 'Analysis Complete!' : 'Analyzing your contract...'}
+              {isFailed ? 'Analysis Failed' : isDone ? 'Analysis Complete!' : 'Analyzing your contract...'}
             </h1>
             <p className="text-sm text-slate-400">
-              {done ? 'Redirecting you to your report...' : 'Our AI is reviewing your document against Indian regulations.'}
+              {isFailed
+                ? (errorMsg || 'Something went wrong. Please try again.')
+                : isDone
+                ? 'Redirecting you to your report...'
+                : 'Our AI is reviewing your document against Indian regulations.'}
             </p>
             {id && <p className="text-xs text-slate-600 mt-2 font-mono">Job ID: {id}</p>}
           </div>
 
-          {/* Steps */}
+          {/* Step List */}
           <div className="space-y-3">
             {STEPS.map((step, i) => {
-              const isDone = completed.includes(i);
-              const isActive = currentStep === i && !isDone;
+              const isDoneStep = i < visibleStep || isDone;
+              const isActive = i === visibleStep && !isDone && !isFailed;
 
               return (
                 <div
                   key={i}
                   className={cn(
                     'flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-300',
-                    isDone ? 'bg-emerald-500/5 border-emerald-500/20' :
-                    isActive ? 'bg-blue-500/10 border-blue-500/30' :
-                    'bg-[#0B0B0E] border-white/[0.04] opacity-40'
+                    isDoneStep ? 'bg-emerald-500/5 border-emerald-500/20' :
+                    isActive   ? 'bg-blue-500/10 border-blue-500/30' :
+                                 'bg-[#0B0B0E] border-white/[0.04] opacity-40'
                   )}
                 >
                   <div className={cn(
                     'w-5 h-5 rounded-full flex items-center justify-center shrink-0',
-                    isDone ? 'bg-emerald-500' : isActive ? 'bg-blue-500' : 'bg-white/10'
+                    isDoneStep ? 'bg-emerald-500' : isActive ? 'bg-blue-500' : 'bg-white/10'
                   )}>
-                    {isDone ? (
+                    {isDoneStep ? (
                       <CheckCircle size={12} className="text-white" />
                     ) : isActive ? (
                       <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
@@ -111,9 +167,9 @@ export function ProcessPage() {
                   </div>
                   <span className={cn(
                     'text-sm',
-                    isDone ? 'text-emerald-300' : isActive ? 'text-white font-medium' : 'text-slate-500'
+                    isDoneStep ? 'text-emerald-300' : isActive ? 'text-white font-medium' : 'text-slate-500'
                   )}>
-                    {step.label}
+                    {step}
                   </span>
                   {isActive && (
                     <div className="ml-auto flex gap-0.5">
@@ -126,6 +182,16 @@ export function ProcessPage() {
               );
             })}
           </div>
+
+          {isFailed && (
+            <button
+              onClick={() => navigate('/upload')}
+              className="w-full mt-6 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition-colors"
+            >
+              ← Try Again
+            </button>
+          )}
+
         </div>
       </div>
     </AppLayout>

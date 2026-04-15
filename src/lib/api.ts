@@ -144,8 +144,9 @@ export async function apiLogout(): Promise<void> {
 export async function apiUploadContract(file: File): Promise<UploadResponse> {
   if (USE_MOCK) {
     await delay(1200);
+    // Return an existing mock report ID so the process→result chain works
     return {
-      report_id: 'rep_' + Date.now(),
+      report_id: 'rep_12345',
       status: 'processing',
       estimated_seconds: 25,
     };

@@ -1,15 +1,62 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import {
-  AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronUp,
+  AlertTriangle, CheckCircle, XCircle, ChevronDown,
   Download, Share2, ArrowLeft, FileText, BookOpen, Lightbulb,
-  Shield, Scale, Filter, Clock, Copy, Check, Loader2, X, Link2
+  Shield, Check, Loader2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { jsPDF, GState } from 'jspdf';
 import { AppLayout } from '../components/AppLayout';
-import { getReportById, Clause, RiskLevel, Report } from '../../lib/mockData';
+import { apiGetReport } from '../../lib/api';
+import type { ReportResponse } from '../../lib/schema';
 import { cn } from '../../lib/utils';
+
+// ─── Local UI Types (mapped from API schema) ──────────────────────────────────
+
+type RiskLevel = 'Safe' | 'Risky' | 'Non-compliant';
+
+interface Clause {
+  id: string;
+  title: string;
+  originalText: string;
+  riskLevel: RiskLevel;
+  issues: string[];
+  suggestions: string[];
+  relevantLaw: string;
+}
+
+interface Report {
+  id: string;
+  name: string;
+  type: string;
+  parties: string;
+  overallRisk: 'High' | 'Medium' | 'Low';
+  date: string;
+  status: string;
+  clauses: Clause[];
+}
+
+function mapApiToReport(data: ReportResponse): Report {
+  return {
+    id: data.report.id,
+    name: data.report.file_name,
+    type: data.report.contract_type,
+    parties: data.report.parties,
+    overallRisk: data.report.overall_risk,
+    date: data.report.created_at?.slice(0, 10) || '',
+    status: data.report.status,
+    clauses: data.clauses.map(c => ({
+      id: c.id,
+      title: c.title,
+      originalText: c.original_text,
+      riskLevel: c.risk_level as RiskLevel,
+      issues: c.issues.map(i => i.description),
+      suggestions: c.suggestions.map(s => s.description),
+      relevantLaw: c.relevant_law,
+    })),
+  };
+}
 
 // ─── Score Ring ────────────────────────────────────────────────────────────────
 
@@ -212,11 +259,34 @@ const FILTER_TABS: { key: FilterTab; label: string; color: string }[] = [
 export function ResultPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const report = getReportById(id || '');
+  const [report, setReport] = useState<Report | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
 
-  if (!report) {
+  useEffect(() => {
+    if (!id) { setNotFound(true); setLoading(false); return; }
+    apiGetReport(id)
+      .then(res => {
+        if (!res) { setNotFound(true); }
+        else { setReport(mapApiToReport(res)); }
+        setLoading(false);
+      })
+      .catch(() => { setNotFound(true); setLoading(false); });
+  }, [id]);
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 size={32} className="text-blue-500 animate-spin" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (notFound || !report) {
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
