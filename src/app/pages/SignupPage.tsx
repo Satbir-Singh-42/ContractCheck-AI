@@ -25,7 +25,7 @@ export function SignupPage() {
     setError('');
     try {
       await signup(form.name, form.email, form.password);
-      navigate('/upload');
+      navigate('/dashboard');
     } catch {
       setError('Signup failed. Please try again.');
     } finally {

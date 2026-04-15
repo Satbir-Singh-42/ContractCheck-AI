@@ -16,10 +16,21 @@ export function LoginPage() {
     if (!form.email || !form.password) { setError('Both fields are required.'); return; }
     setLoading(true); setError('');
     try {
-      await login(form.email, form.password);
+      // Set a 10s timeout to forcefully prevent infinite hangs if LocalStorage/Supabase locks
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Login Request Timed Out!")), 10000));
+      await Promise.race([
+        login(form.email, form.password),
+        timeout
+      ]);
       navigate('/dashboard');
-    } catch {
-      setError('Invalid credentials. Please try again.');
+    } catch (err: any) {
+      console.error("Login attempt failed:", err);
+      // If it explicitly timed out, suggest clearing cache
+      if (err.message === "Login Request Timed Out!") {
+        setError('Login is stuck. Please refresh the page or clear your browser history/cache.');
+      } else {
+        setError('Invalid credentials. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -40,14 +51,6 @@ export function LoginPage() {
             <h1 className="text-xl font-bold tracking-tight mb-1">Welcome back</h1>
             <p className="text-sm text-slate-400">Sign in to your ContractCheck account.</p>
           </div>
-
-          {/* Quick Fill Demo */}
-          <button
-            onClick={() => setForm({ email: 'arjun@techcorp.in', password: 'demo1234' })}
-            className="w-full text-xs text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2 mb-5 hover:bg-blue-500/15 transition-colors"
-          >
-            Fill demo credentials
-          </button>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

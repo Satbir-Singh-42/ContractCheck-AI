@@ -26,8 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Helper to fetch extended profile data from the profiles table
-  const loadProfile = async (authId: string, email: string | undefined): Promise<User | null> => {
+  const loadProfile = async (authId: string, email: string | undefined): Promise<User> => {
     const { data: profile, error } = await supabase
       .from('profiles')
       .select('*')
@@ -35,8 +34,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .single();
 
     if (error || !profile) {
-      console.warn('Profile not found for authenticated user', error);
-      return null;
+      // If DB replication is delayed right after signup, supply safe defaults to prevent UI crash
+      return {
+        id: authId,
+        name: email?.split('@')[0] || 'User',
+        email: email || '',
+        plan: 'free',
+        uploadsUsed: 0,
+        uploadsLimit: 3,
+      };
     }
 
     return {
@@ -53,12 +59,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
 
     async function getInitialSession() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user && mounted) {
-        const u = await loadProfile(session.user.id, session.user.email);
-        setUser(u);
+      try {
+        const fetchFlow = async () => {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          if (session?.user && mounted) {
+            const u = await loadProfile(session.user.id, session.user.email);
+            setUser(u);
+          }
+        };
+        // Forcefully break any deadlock after 5 seconds to guarantee UI unblocks
+        await Promise.race([
+          fetchFlow(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase Auth Timeout')), 5000))
+        ]);
+      } catch (e) {
+        console.warn('Session init failed or timed out', e);
+      } finally {
+        if (mounted) setIsLoading(false);
       }
-      if (mounted) setIsLoading(false);
     }
     
     getInitialSession();
@@ -79,12 +97,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: { session }, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw new Error(error.message);
+    if (session?.user) {
+      const u = await loadProfile(session.user.id, session.user.email);
+      setUser(u);
+    }
   };
 
   const signup = async (name: string, email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data: { session }, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -94,6 +116,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
     if (error) throw new Error(error.message);
+    if (session?.user) {
+      const u = await loadProfile(session.user.id, session.user.email);
+      setUser(u);
+    }
   };
 
   const logout = async () => {

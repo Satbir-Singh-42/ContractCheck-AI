@@ -185,31 +185,6 @@ export function UploadPage() {
           </div>
         )}
 
-        {/* Info Box */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="flex items-start gap-3 bg-[#0B0B0E] border border-white/[0.06] rounded-xl p-4">
-            <Shield size={16} className="text-blue-400 mt-0.5 shrink-0" />
-            <div className="text-xs text-slate-400 leading-relaxed">
-              <strong className="text-slate-300">4 Indian Laws</strong><br />
-              DPDP Act, GST, Contract Act, Labour Laws
-            </div>
-          </div>
-          <div className="flex items-start gap-3 bg-[#0B0B0E] border border-white/[0.06] rounded-xl p-4">
-            <Lock size={16} className="text-emerald-400 mt-0.5 shrink-0" />
-            <div className="text-xs text-slate-400 leading-relaxed">
-              <strong className="text-slate-300">Secure Processing</strong><br />
-              Files processed in-memory, never stored
-            </div>
-          </div>
-          <div className="flex items-start gap-3 bg-[#0B0B0E] border border-white/[0.06] rounded-xl p-4">
-            <Zap size={16} className="text-amber-400 mt-0.5 shrink-0" />
-            <div className="text-xs text-slate-400 leading-relaxed">
-              <strong className="text-slate-300">Under 30 Seconds</strong><br />
-              AI-powered instant analysis
-            </div>
-          </div>
-        </div>
-
         {/* Usage Indicator */}
         <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
           <span>{remaining} of {user?.uploadsLimit} analyses remaining this month</span>
