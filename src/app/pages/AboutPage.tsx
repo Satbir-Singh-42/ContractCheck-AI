@@ -328,7 +328,7 @@ function Footer() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export function AboutPage() {
   return (
-    <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30">
+    <div className="min-h-screen mobile-no-motion bg-[#060608] text-white selection:bg-blue-500/30">
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-3/4 h-1/2 rounded-full bg-blue-600/[0.05] blur-[90px] sm:w-1/2 sm:blur-[150px]" />
         <div className="absolute bottom-0 right-0 w-3/5 h-2/5 rounded-full bg-purple-600/[0.03] blur-[75px] sm:w-2/5 sm:blur-[130px]" />

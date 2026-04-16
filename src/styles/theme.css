@@ -112,4 +112,22 @@
     min-height: 100vh;
     min-height: 100dvh;
   }
+
+  @media (max-width: 767px) {
+    .mobile-no-motion * {
+      animation: none !important;
+      transition-duration: 0ms !important;
+      transition-delay: 0ms !important;
+    }
+
+    .mobile-no-motion [style*='opacity'] {
+      opacity: 1 !important;
+    }
+
+    .mobile-no-motion [style*='transform'],
+    .mobile-no-motion [style*='translate'],
+    .mobile-no-motion [style*='scale'] {
+      transform: none !important;
+    }
+  }
 }
