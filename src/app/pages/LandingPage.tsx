@@ -181,7 +181,7 @@ function RegulationsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
               transition={{ duration: 0.4, delay: i * 0.1 }}
-              className={cn('rounded-2xl border p-6 transition-all hover:scale-[1.01] hover:shadow-lg', reg.border, reg.bg)}
+              className={cn('rounded-2xl border p-6 transition-shadow duration-200 hover:shadow-lg', reg.border, reg.bg)}
             >
               <div className="flex items-start gap-4">
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-black/20')}>
