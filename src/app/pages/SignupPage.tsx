@@ -12,6 +12,30 @@ export function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+
+  const getSignupFailureReason = React.useCallback((err: unknown) => {
+    const message = err instanceof Error ? err.message : 'Signup failed. Please try again.';
+    const normalized = message.toLowerCase();
+
+    if (normalized.includes('already registered') || normalized.includes('already exists')) {
+      return 'This email is already registered. Please sign in instead.';
+    }
+    if (normalized.includes('invalid email')) {
+      return 'Please enter a valid email address.';
+    }
+    if (normalized.includes('password') && normalized.includes('least')) {
+      return 'Password must be at least 6 characters.';
+    }
+    if (normalized.includes('rate limit') || normalized.includes('too many requests')) {
+      return 'Too many signup attempts. Please wait a moment and try again.';
+    }
+    if (normalized.includes('network') || normalized.includes('failed to fetch')) {
+      return 'Network error while creating account. Please check your internet connection and try again.';
+    }
+
+    return message;
+  }, []);
 
   React.useEffect(() => {
     if (user && !isLoading) {
@@ -21,21 +45,34 @@ export function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.password) {
+    const name = form.name.trim();
+    const email = form.email.trim();
+    const password = form.password;
+
+    if (!name || !email || !password) {
       setError('All fields are required.');
       return;
     }
-    if (form.password.length < 6) {
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    if (password.length < 6) {
       setError('Password must be at least 6 characters.');
       return;
     }
     setLoading(true);
     setError('');
+    setNotice('');
     try {
-      await signup(form.name, form.email, form.password);
+      const result = await signup(name, email, password);
+      if (result.status === 'check_email') {
+        setNotice('Account created successfully. Please verify your email before signing in.');
+        return;
+      }
       navigate('/dashboard');
-    } catch {
-      setError('Signup failed. Please try again.');
+    } catch (err) {
+      setError(getSignupFailureReason(err));
     } finally {
       setLoading(false);
     }
@@ -142,6 +179,12 @@ export function SignupPage() {
             {error && (
               <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3">
                 {error}
+              </div>
+            )}
+
+            {notice && (
+              <div className="text-emerald-300 text-sm bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-4 py-3">
+                {notice}
               </div>
             )}
 

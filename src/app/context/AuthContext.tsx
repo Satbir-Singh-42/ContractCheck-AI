@@ -14,16 +14,45 @@ export interface User {
   notificationPrefs?: any;
 }
 
+export type SignupResult = {
+  status: 'signed_in' | 'check_email';
+};
+
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  signup: (name: string, email: string, password: string) => Promise<SignupResult>;
   logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
+
+function mapSignupErrorMessage(message: string) {
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes('already registered') || normalized.includes('already exists')) {
+    return 'This email is already registered. Please sign in instead.';
+  }
+  if (normalized.includes('invalid email')) {
+    return 'Please enter a valid email address.';
+  }
+  if (normalized.includes('password should be at least') || normalized.includes('weak password') || normalized.includes('password is too short')) {
+    return 'Password must be at least 6 characters.';
+  }
+  if (normalized.includes('signup is disabled') || normalized.includes('signups not allowed')) {
+    return 'Signup is currently disabled. Please contact support.';
+  }
+  if (normalized.includes('rate limit') || normalized.includes('too many requests')) {
+    return 'Too many signup attempts. Please wait a moment and try again.';
+  }
+  if (normalized.includes('network') || normalized.includes('failed to fetch')) {
+    return 'Network error while creating account. Please check your internet connection and try again.';
+  }
+
+  return message;
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -139,8 +168,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signup = async (name: string, email: string, password: string) => {
-    const { data: { session }, error } = await supabase.auth.signUp({
+  const signup = async (name: string, email: string, password: string): Promise<SignupResult> => {
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -149,11 +178,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     });
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(mapSignupErrorMessage(error.message));
+
+    // Supabase can return a user with empty identities when email is already registered.
+    if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      throw new Error('This email is already registered. Please sign in instead.');
+    }
+
+    const session = data.session;
+    if (!session?.user) {
+      return { status: 'check_email' };
+    }
+
     if (session?.user) {
       const u = await loadProfile(session.user.id, session.user.email);
       setUser(u);
     }
+
+    return { status: 'signed_in' };
   };
 
   const logout = async () => {
