@@ -3,10 +3,22 @@ import { MotionConfig } from 'motion/react';
 import { RouterProvider } from 'react-router';
 import { router } from './routes';
 
+function shouldReduceMotionNow() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+
+  return window.matchMedia('(max-width: 767px), (prefers-reduced-motion: reduce)').matches;
+}
+
 function useShouldReduceMotion() {
-  const [reduceMotion, setReduceMotion] = React.useState(false);
+  const [reduceMotion, setReduceMotion] = React.useState(shouldReduceMotionNow);
 
   React.useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
+
     const mediaQuery = window.matchMedia('(max-width: 767px), (prefers-reduced-motion: reduce)');
 
     const handleChange = () => setReduceMotion(mediaQuery.matches);

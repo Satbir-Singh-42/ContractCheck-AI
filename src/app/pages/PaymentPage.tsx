@@ -60,6 +60,25 @@ export function PaymentPage() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'select' | 'checkout'>('select');
 
+  const forceTopScroll = React.useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+
+    // Re-assert on next frame for browsers that restore previous scroll.
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    });
+  }, []);
+
+  React.useEffect(() => {
+    forceTopScroll();
+  }, [step, forceTopScroll]);
+
   const plan = PLANS.find(p => p.id === selectedPlan)!;
   const selectedMethodInfo = PAYMENT_METHODS.find(m => m.id === selectedMethod) ?? PAYMENT_METHODS[0];
   const gstAmount = plan.price ? Math.round(plan.price * 0.18) : 0;

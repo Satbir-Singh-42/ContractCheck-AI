@@ -38,12 +38,6 @@ function ScrollToTop() {
   }, []);
 
   React.useEffect(() => {
-    if ('scrollRestoration' in window.history) {
-      window.history.scrollRestoration = 'manual';
-    }
-  }, []);
-
-  React.useEffect(() => {
     const handleInternalLinkClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
       const internalLink = target?.closest('a[href^="/"]');
@@ -56,7 +50,13 @@ function ScrollToTop() {
     return () => document.removeEventListener('click', handleInternalLinkClick, true);
   }, [forceTop]);
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
+
+  React.useLayoutEffect(() => {
     forceTop();
   }, [location.pathname, location.search, location.hash, forceTop]);
 

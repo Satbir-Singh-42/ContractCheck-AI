@@ -9,14 +9,17 @@ export function SuccessPage() {
   const [count, setCount] = useState(5);
 
   useEffect(() => {
-    const t = setInterval(() => {
-      setCount(c => {
-        if (c <= 1) { clearInterval(t); navigate('/dashboard'); return 0; }
-        return c - 1;
-      });
+    if (count <= 0) {
+      navigate('/dashboard');
+      return;
+    }
+
+    const t = window.setTimeout(() => {
+      setCount(c => c - 1);
     }, 1000);
-    return () => clearInterval(t);
-  }, [navigate]);
+
+    return () => window.clearTimeout(t);
+  }, [count, navigate]);
 
   return (
     <AppLayout>
