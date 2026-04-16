@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+Disallow: /dashboard
+Disallow: /upload
+Disallow: /process/
+Disallow: /result/
+Disallow: /payment
+Disallow: /success
+Disallow: /failure
+Disallow: /profile
+Disallow: /login
+Disallow: /signup
+Disallow: /share/
+
+Sitemap: https://contractcheck-ai.vercel.app/sitemap.xml

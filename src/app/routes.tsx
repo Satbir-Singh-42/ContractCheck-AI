@@ -5,6 +5,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { PublicFooter } from './components/PublicFooter';
 import { PublicNavbar } from './components/PublicNavbar';
+import { Seo, type SeoProps } from './components/Seo';
 import { LandingPage } from './pages/LandingPage';
 import { PricingPage } from './pages/PricingPage';
 import { AboutPage } from './pages/AboutPage';
@@ -226,8 +227,148 @@ function LazyPage({ Component }: { Component: React.LazyExoticComponent<React.Co
 }
 
 function RootLayout() {
+  function RouteSeo() {
+    const { pathname } = useLocation();
+    const siteUrl = (import.meta.env.VITE_SITE_URL || window.location.origin).replace(/\/$/, '');
+    const toAbsoluteUrl = (path: string) => `${siteUrl}${path}`;
+
+    const baseKeywords = 'contract compliance checker, indian law compliance, dpdp act compliance, gst contract review, legal ai india';
+    const indexablePaths = new Set(['/','/pricing','/about','/contact','/privacy']);
+
+    const noIndexRoutes = [
+      '/login',
+      '/signup',
+      '/dashboard',
+      '/upload',
+      '/process/',
+      '/result/',
+      '/payment',
+      '/success',
+      '/failure',
+      '/profile',
+      '/share/',
+    ];
+
+    const matchesNoIndexRoute = noIndexRoutes.some((route) => (
+      route.endsWith('/') ? pathname.startsWith(route) : pathname === route
+    ));
+
+    const baseStructuredData: Record<string, unknown> = {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'ContractCheck AI',
+      url: siteUrl,
+      logo: toAbsoluteUrl('/favicon.png'),
+    };
+
+    let seo: SeoProps = {
+      title: 'ContractCheck AI | AI Contract Compliance Checker for Indian Businesses',
+      description: 'Analyze contracts against DPDP Act, GST, Indian Contract Act, and labour laws with AI-powered clause risk detection and fix suggestions.',
+      canonicalPath: pathname,
+      keywords: baseKeywords,
+      noIndex: matchesNoIndexRoute || !indexablePaths.has(pathname),
+      structuredData: baseStructuredData,
+    };
+
+    if (pathname === '/') {
+      seo = {
+        title: 'AI Contract Compliance Checker for Indian Businesses | ContractCheck AI',
+        description: 'Review contracts in minutes with AI-powered compliance checks for DPDP Act, GST, Contract Act, and labour laws.',
+        canonicalPath: '/',
+        keywords: `${baseKeywords}, ai contract checker india, contract risk scoring`,
+        structuredData: [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'ContractCheck AI',
+            url: siteUrl,
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'SoftwareApplication',
+            name: 'ContractCheck AI',
+            applicationCategory: 'BusinessApplication',
+            operatingSystem: 'Web',
+            url: siteUrl,
+            description: 'AI-powered contract compliance checker for Indian businesses.',
+          },
+        ],
+      };
+    } else if (pathname === '/pricing') {
+      seo = {
+        title: 'Pricing | ContractCheck AI',
+        description: 'Choose the right ContractCheck AI plan for startups, legal teams, and enterprises needing Indian contract compliance automation.',
+        canonicalPath: '/pricing',
+        keywords: `${baseKeywords}, contract compliance pricing`,
+        structuredData: {
+          '@context': 'https://schema.org',
+          '@type': 'WebPage',
+          name: 'ContractCheck AI Pricing',
+          url: toAbsoluteUrl('/pricing'),
+          isPartOf: {
+            '@type': 'WebSite',
+            name: 'ContractCheck AI',
+            url: siteUrl,
+          },
+        },
+      };
+    } else if (pathname === '/about') {
+      seo = {
+        title: 'About ContractCheck AI',
+        description: 'Learn how ContractCheck AI helps businesses reduce legal risk by checking contract clauses against Indian regulations.',
+        canonicalPath: '/about',
+        keywords: `${baseKeywords}, about contractcheck ai`,
+        structuredData: {
+          '@context': 'https://schema.org',
+          '@type': 'AboutPage',
+          name: 'About ContractCheck AI',
+          url: toAbsoluteUrl('/about'),
+          isPartOf: {
+            '@type': 'WebSite',
+            name: 'ContractCheck AI',
+            url: siteUrl,
+          },
+        },
+      };
+    } else if (pathname === '/contact') {
+      seo = {
+        title: 'Contact ContractCheck AI',
+        description: 'Get in touch with ContractCheck AI for support, product inquiries, and enterprise deployment questions.',
+        canonicalPath: '/contact',
+        keywords: `${baseKeywords}, contact contractcheck ai`,
+        structuredData: {
+          '@context': 'https://schema.org',
+          '@type': 'ContactPage',
+          name: 'Contact ContractCheck AI',
+          url: toAbsoluteUrl('/contact'),
+        },
+      };
+    } else if (pathname === '/privacy') {
+      seo = {
+        title: 'Privacy Policy | ContractCheck AI',
+        description: 'Read the ContractCheck AI privacy policy to understand how your contracts and personal data are handled securely.',
+        canonicalPath: '/privacy',
+        keywords: `${baseKeywords}, privacy policy`,
+        structuredData: {
+          '@context': 'https://schema.org',
+          '@type': 'WebPage',
+          name: 'Privacy Policy | ContractCheck AI',
+          url: toAbsoluteUrl('/privacy'),
+        },
+      };
+    } else if (matchesNoIndexRoute) {
+      seo = {
+        ...seo,
+        noIndex: true,
+      };
+    }
+
+    return <Seo {...seo} />;
+  }
+
   return (
     <AuthProvider>
+      <RouteSeo />
       <ScrollToTop />
       <div className="min-h-screen flex flex-col w-full">
         <Outlet />
