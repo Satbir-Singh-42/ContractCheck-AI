@@ -26,19 +26,18 @@ function HeroSection() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[380px] bg-blue-500/10 blur-[80px] rounded-full pointer-events-none sm:w-[600px] sm:h-[600px] sm:blur-[150px]" />
 
       <motion.div
-        initial={{ opacity: 0, y: -20, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
         className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 text-xs font-semibold mb-8 uppercase tracking-widest shadow-[0_0_15px_rgba(59,130,246,0.3)] backdrop-blur-md"
       >
         <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
           <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
         </span>
         About ContractCheck AI
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }} className="mb-10 relative">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45, delay: 0.1, ease: "easeOut" }} className="mb-10 relative">
         <h1 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter leading-[1.05] drop-shadow-2xl">
           COMPLIANCE
         </h1>
@@ -47,7 +46,7 @@ function HeroSection() {
         </h1>
       </motion.div>
 
-      <motion.p initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }} className="text-lg sm:text-xl md:text-2xl text-slate-400 max-w-[800px] mb-6 leading-relaxed px-4 font-light">
+      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45, delay: 0.2, ease: "easeOut" }} className="text-lg sm:text-xl md:text-2xl text-slate-400 max-w-[800px] mb-6 leading-relaxed px-4 font-light">
         ContractCheck AI is not a chatbot. It is a{' '}
         <span className="text-white font-medium bg-white/5 px-3 py-1 rounded-lg border border-white/10 shadow-inner">Legal Compliance Engine</span>{' '}
         designed to analyze contracts against Indian regulations and deliver actionable risk intelligence.
