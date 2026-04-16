@@ -5,18 +5,11 @@ import {
   Shield, Upload, ArrowRight, Lock, Scale, Gavel, Building2,
   FileSearch, Brain, Database, Users,
   CheckCircle, Code, Briefcase, TrendingUp, Eye,
-  Twitter, Github, Linkedin, ChevronRight
+  ChevronRight
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { PublicNavbar } from '../components/PublicNavbar';
-
-function BrandLogo({ size = 24 }: { size?: number }) {
-  return (
-    <div className="rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(37,99,235,0.6)]" style={{ width: size, height: size }}>
-      <Shield size={size * 0.55} className="text-white" />
-    </div>
-  );
-}
+import { PublicFooter } from '../components/PublicFooter';
 
 // ─── Hero Section ─────────────────────────────────────────────────────────────
 function HeroSection() {
@@ -285,45 +278,6 @@ function BottomCTA() {
   );
 }
 
-// ─── Footer ───────────────────────────────────────────────────────────────────
-function Footer() {
-  return (
-    <footer className="border-t border-white/[0.05] bg-[#060608] pt-12 sm:pt-20 pb-8 sm:pb-10">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row items-start justify-between gap-12 mb-20">
-          <div className="max-w-[300px]">
-            <div className="flex items-center gap-3 mb-6">
-              <BrandLogo size={34} />
-              <span className="font-black text-2xl tracking-tighter">ContractCheck</span>
-            </div>
-            <p className="text-sm text-slate-400 leading-relaxed font-medium">AI-powered contract compliance for Indian businesses. Built strictly with DPDP, GST, Labour Laws & Contract Act in mind.</p>
-          </div>
-          <div className="flex flex-wrap gap-x-20 gap-y-10 text-sm">
-            <div className="flex flex-col gap-4">
-              <span className="font-bold text-white mb-2 uppercase tracking-wider text-xs">Product</span>
-              <Link to="/pricing" className="text-slate-400 font-medium hover:text-blue-400 transition-colors">Pricing Options</Link>
-              <Link to="/upload" className="text-slate-400 font-medium hover:text-blue-400 transition-colors">Analyze Contract</Link>
-            </div>
-            <div className="flex flex-col gap-4">
-              <span className="font-bold text-white mb-2 uppercase tracking-wider text-xs">Company</span>
-              <Link to="/about" className="text-slate-400 font-medium hover:text-blue-400 transition-colors">About Us</Link>
-              <Link to="/privacy" className="text-slate-400 font-medium hover:text-blue-400 transition-colors">Privacy Policy</Link>
-            </div>
-          </div>
-        </div>
-        <div className="flex flex-col md:flex-row items-center justify-between pt-8 border-t border-white/[0.05] text-sm text-slate-500 font-medium">
-          <p>&copy; {new Date().getFullYear()} ContractCheck AI. All rights reserved.</p>
-          <div className="flex items-center gap-6 mt-6 md:mt-0">
-            <a href="#" className="hover:text-blue-400 hover:-translate-y-1 transition-all"><Twitter size={18} /></a>
-            <a href="#" className="hover:text-blue-400 hover:-translate-y-1 transition-all"><Github size={18} /></a>
-            <a href="#" className="hover:text-blue-400 hover:-translate-y-1 transition-all"><Linkedin size={18} /></a>
-          </div>
-        </div>
-        <p className="text-center text-xs text-slate-600 mt-8 font-medium">ContractCheck is an AI tool and does not provide legal advice. Always consult a qualified advocate for legal matters.</p>
-      </div>
-    </footer>
-  );
-}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export function AboutPage() {
@@ -344,7 +298,7 @@ export function AboutPage() {
         </main>
 
         <BottomCTA />
-        <Footer />
+        <PublicFooter />
       </div>
     </div>
   );

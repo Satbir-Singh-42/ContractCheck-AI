@@ -42,6 +42,7 @@ export function PublicNavbar() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const location = useLocation();
   const { user } = useAuth();
+  const headerRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
     let rafId = 0;
@@ -74,9 +75,25 @@ export function PublicNavbar() {
     setMobileOpen(false);
   }, [location.pathname]);
 
+  React.useEffect(() => {
+    if (!mobileOpen) return;
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    if (!window.matchMedia('(max-width: 767px)').matches) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (headerRef.current?.contains(target)) return;
+      setMobileOpen(false);
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    return () => document.removeEventListener('pointerdown', handlePointerDown, true);
+  }, [mobileOpen]);
+
   return (
     <>
-      <header className={cn(
+      <header ref={headerRef} className={cn(
         'fixed top-0 left-0 right-0 z-50 w-full border-b transition-colors duration-200',
         scrolled
           ? 'border-white/[0.08] bg-[#060608]/95 md:backdrop-blur-xl md:shadow-lg md:shadow-black/20'

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router';
 import { CheckCircle, Zap, Building2, ArrowRight, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../../lib/utils';
 import { motion } from 'motion/react';
 import { PublicNavbar } from '../components/PublicNavbar';
+import { PublicFooter } from '../components/PublicFooter';
 import { useTopNavigate } from '../hooks/useTopNavigate';
 
 const getPlans = (isAnnual: boolean) => [
@@ -212,6 +212,8 @@ export function PricingPage() {
           ))}
         </div>
       </motion.div>
+
+      <PublicFooter />
     </div>
   );
 }

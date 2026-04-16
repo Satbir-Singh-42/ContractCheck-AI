@@ -1,16 +1,8 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router';
-import { Shield, Mail, MapPin, Phone, Send } from 'lucide-react';
+import { Mail, MapPin, Phone, Send } from 'lucide-react';
 import { PublicNavbar } from '../components/PublicNavbar';
 import { motion } from 'motion/react';
-
-function BrandLogo({ size = 24 }: { size?: number }) {
-  return (
-    <div className="rounded-lg bg-blue-600 flex items-center justify-center shrink-0" style={{ width: size, height: size }}>
-      <Shield size={size * 0.6} className="text-white" />
-    </div>
-  );
-}
+import { PublicFooter } from '../components/PublicFooter';
 
 export function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -158,16 +150,7 @@ export function ContactPage() {
         </div>
       </motion.main>
 
-      {/* Footer */}
-      <footer className="border-t border-white/[0.05] bg-[#060608] py-8">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-600">
-          <p>&copy; {new Date().getFullYear()} ContractCheck AI. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <Link to="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
-            <Link to="/" className="hover:text-slate-300 transition-colors">Home</Link>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }

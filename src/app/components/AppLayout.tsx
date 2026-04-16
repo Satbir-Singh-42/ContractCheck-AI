@@ -16,6 +16,27 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const navigate = useTopNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const headerRef = React.useRef<HTMLElement | null>(null);
+
+  React.useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  React.useEffect(() => {
+    if (!mobileOpen) return;
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    if (!window.matchMedia('(max-width: 767px)').matches) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (headerRef.current?.contains(target)) return;
+      setMobileOpen(false);
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    return () => document.removeEventListener('pointerdown', handlePointerDown, true);
+  }, [mobileOpen]);
 
   const handleLogout = () => {
     setMobileOpen(false);
@@ -26,7 +47,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen w-full bg-[#060608] text-white flex flex-col">
       {/* Top Nav */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.06] bg-[#060608]/90 md:backdrop-blur-md">
+      <header ref={headerRef} className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.06] bg-[#060608]/90 md:backdrop-blur-md">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Shield className="w-6 h-6 text-blue-400" />
@@ -91,6 +112,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               onClick={() => setMobileOpen(o => !o)}
               className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
               aria-label="Toggle menu"
+              aria-expanded={mobileOpen}
             >
               {mobileOpen ? <X size={20} /> : <Menu size={20} />}
             </button>

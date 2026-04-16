@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router';
 import { Shield, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { PublicNavbar } from '../components/PublicNavbar';
+import { PublicFooter } from '../components/PublicFooter';
 import { cn } from '../../lib/utils';
 
 const SECTIONS = [
@@ -303,16 +303,7 @@ export function PrivacyPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-white/[0.05] bg-[#060608] py-12 mt-12">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-slate-500">
-          <p>&copy; {new Date().getFullYear()} ContractCheck AI. All rights reserved.</p>
-          <div className="flex items-center gap-8 font-medium">
-            <Link to="/contact" className="hover:text-blue-400 transition-colors">Contact Support</Link>
-            <Link to="/" className="hover:text-blue-400 transition-colors">Home Dashboard</Link>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter className="mt-12" />
     </div>
   );
 }
