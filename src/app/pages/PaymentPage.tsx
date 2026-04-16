@@ -39,8 +39,8 @@ const PAYMENT_METHODS = [
     desc: 'UPI, Cards, Net Banking',
     logoSrc: '/razorpay.png',
     logoAlt: 'Razorpay logo',
-    logoWrapClass: 'bg-white rounded-lg w-24 h-12 p-0.5',
-    logoClass: 'object-cover object-center scale-[1.12]',
+    logoWrapClass: 'bg-white rounded-lg w-12 h-12',
+    logoClass: 'object-cover',
   },
   {
     id: 'stripe',
