@@ -75,7 +75,7 @@ function Hero() {
       >
         <Link
           to="/signup"
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-7 py-3.5 rounded-full font-semibold transition-all shadow-[0_0_30px_-5px_rgba(37,99,235,0.5)] hover:shadow-[0_0_40px_-5px_rgba(37,99,235,0.7)] hover:scale-[1.02]"
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-7 py-3.5 rounded-full font-semibold transition-[background-color,box-shadow] duration-200 shadow-[0_0_30px_-5px_rgba(37,99,235,0.5)] hover:shadow-[0_0_40px_-5px_rgba(37,99,235,0.7)]"
         >
           <Upload size={17} /> Analyze Free Contract
         </Link>
@@ -83,7 +83,7 @@ function Hero() {
           type="button"
           onClick={handleOpenSample}
           disabled={openingSample}
-          className="flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold text-white border border-white/10 hover:bg-white/5 hover:border-white/20 transition-all disabled:opacity-80 disabled:cursor-wait"
+          className="flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold text-white border border-white/10 hover:bg-white/5 hover:border-white/20 transition-colors duration-200 disabled:opacity-80 disabled:cursor-wait"
         >
           {openingSample ? (
             <>
