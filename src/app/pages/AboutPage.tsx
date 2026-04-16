@@ -282,20 +282,25 @@ function BottomCTA() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export function AboutPage() {
   return (
-    <div className="min-h-screen mobile-single-rise bg-[#060608] text-white selection:bg-blue-500/30">
+    <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30">
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-3/4 h-1/2 rounded-full bg-blue-600/[0.05] blur-[90px] sm:w-1/2 sm:blur-[150px]" />
         <div className="absolute bottom-0 right-0 w-3/5 h-2/5 rounded-full bg-purple-600/[0.03] blur-[75px] sm:w-2/5 sm:blur-[130px]" />
       </div>
-      <div className="relative z-10 flex flex-col mobile-rise-target">
+      <div className="relative z-10 flex flex-col">
         <PublicNavbar />
-        <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.main
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8"
+        >
           <HeroSection />
 
           <CoreCapabilities />
           <UseCasesSection />
           <RegulationsSection />
-        </main>
+        </motion.main>
 
         <BottomCTA />
         <PublicFooter />

@@ -3,16 +3,37 @@ import { motion } from 'motion/react';
 import { Link } from 'react-router';
 import {
   Shield, FileText, AlertTriangle,
-  ArrowRight, Upload, Zap, Lock, Share2, Download,
+  ArrowRight, Upload, Zap, Lock, Share2, Download, Loader2,
   Scale, FileSearch, ClipboardCheck, Gavel, Building2,
   ChevronRight, Check, Star, Users, BarChart3
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { PublicNavbar } from '../components/PublicNavbar';
 import { PublicFooter } from '../components/PublicFooter';
+import { useTopNavigate } from '../hooks/useTopNavigate';
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 function Hero() {
+  const navigate = useTopNavigate();
+  const [openingSample, setOpeningSample] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
+
+    // Prefetch sample report page chunk on mobile to reduce tap-to-open delay.
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      void import('./SharePage');
+    }
+  }, []);
+
+  const handleOpenSample = React.useCallback(() => {
+    if (openingSample) return;
+    setOpeningSample(true);
+    navigate('/share/rep_12345');
+  }, [navigate, openingSample]);
+
   return (
     <section className="pt-16 sm:pt-24 pb-12 sm:pb-16 flex flex-col items-center text-center">
       <motion.div
@@ -58,12 +79,22 @@ function Hero() {
         >
           <Upload size={17} /> Analyze Free Contract
         </Link>
-        <Link
-          to="/share/rep_12345"
-          className="flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold text-white border border-white/10 hover:bg-white/5 hover:border-white/20 transition-all"
+        <button
+          type="button"
+          onClick={handleOpenSample}
+          disabled={openingSample}
+          className="flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold text-white border border-white/10 hover:bg-white/5 hover:border-white/20 transition-all disabled:opacity-80 disabled:cursor-wait"
         >
-          <FileText size={17} /> See Sample Report
-        </Link>
+          {openingSample ? (
+            <>
+              <Loader2 size={17} className="animate-spin" /> Opening Sample Report...
+            </>
+          ) : (
+            <>
+              <FileText size={17} /> See Sample Report
+            </>
+          )}
+        </button>
       </motion.div>
 
       <motion.p
@@ -437,24 +468,29 @@ function BottomCTA() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export function LandingPage() {
   return (
-    <div className="min-h-screen mobile-single-rise bg-[#060608] text-white selection:bg-blue-500/30">
+    <div className="min-h-screen bg-[#060608] text-white selection:bg-blue-500/30">
       {/* Background glows */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-3/4 h-1/2 rounded-full bg-blue-600/[0.08] blur-[90px] sm:w-1/2 sm:blur-[140px]" />
         <div className="absolute bottom-0 right-0 w-3/5 h-2/5 rounded-full bg-blue-500/[0.05] blur-[75px] sm:w-2/5 sm:blur-[120px]" />
       </div>
 
-      <div className="relative z-10 flex flex-col mobile-rise-target">
+      <div className="relative z-10 flex flex-col">
         <PublicNavbar />
 
-        <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.main
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8"
+        >
           <Hero />
 
           <RegulationsSection />
           <HowItWorksSection />
           <FeaturesGrid />
           <SocialProof />
-        </main>
+        </motion.main>
 
         <BottomCTA />
         <PublicFooter />
