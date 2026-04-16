@@ -113,21 +113,39 @@
     min-height: 100dvh;
   }
 
+  @keyframes mobile-rise-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   @media (max-width: 767px) {
-    .mobile-no-motion * {
+    .mobile-single-rise * {
       animation: none !important;
       transition-duration: 0ms !important;
       transition-delay: 0ms !important;
     }
 
-    .mobile-no-motion [style*='opacity'] {
+    .mobile-single-rise [style*='opacity'] {
       opacity: 1 !important;
     }
 
-    .mobile-no-motion [style*='transform'],
-    .mobile-no-motion [style*='translate'],
-    .mobile-no-motion [style*='scale'] {
+    .mobile-single-rise [style*='transform'],
+    .mobile-single-rise [style*='translate'],
+    .mobile-single-rise [style*='scale'] {
       transform: none !important;
+    }
+
+    .mobile-single-rise > .mobile-rise-target {
+      animation: mobile-rise-up 320ms ease-out 1 both !important;
+      opacity: 1 !important;
+      transform: translateY(0) !important;
     }
   }
 }
