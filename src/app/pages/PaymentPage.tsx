@@ -33,8 +33,20 @@ const PLANS = [
 ];
 
 const PAYMENT_METHODS = [
-  { id: 'razorpay', label: 'Razorpay', desc: 'UPI, Cards, Net Banking', logo: 'RP' },
-  { id: 'stripe', label: 'Stripe', desc: 'International Cards', logo: 'ST' },
+  {
+    id: 'razorpay',
+    label: 'Razorpay',
+    desc: 'UPI, Cards, Net Banking',
+    logoSrc: '/razorpay.png',
+    logoAlt: 'Razorpay logo',
+  },
+  {
+    id: 'stripe',
+    label: 'Stripe',
+    desc: 'International Cards',
+    logoSrc: '/stripe.png',
+    logoAlt: 'Stripe logo',
+  },
 ];
 
 export function PaymentPage() {
@@ -125,7 +137,14 @@ export function PaymentPage() {
                       selectedMethod === m.id ? 'border-blue-500/40 bg-blue-500/5' : 'border-white/[0.06] bg-[#0B0B0E] hover:border-white/10'
                     )}
                   >
-                    <span className="text-xs font-bold text-blue-400 bg-blue-500/10 rounded-lg w-10 h-10 flex items-center justify-center shrink-0">{m.logo}</span>
+                    <span className="bg-white rounded-lg w-10 h-10 p-1.5 flex items-center justify-center shrink-0 overflow-hidden">
+                      <img
+                        src={m.logoSrc}
+                        alt={m.logoAlt}
+                        className="w-full h-full object-contain"
+                        loading="lazy"
+                      />
+                    </span>
                     <div>
                       <p className="text-sm font-semibold text-white">{m.label}</p>
                       <p className="text-xs text-slate-500">{m.desc}</p>
