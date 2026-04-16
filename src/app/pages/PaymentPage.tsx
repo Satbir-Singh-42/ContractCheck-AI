@@ -39,6 +39,8 @@ const PAYMENT_METHODS = [
     desc: 'UPI, Cards, Net Banking',
     logoSrc: '/razorpay.png',
     logoAlt: 'Razorpay logo',
+    logoWrapClass: 'bg-white rounded-lg w-24 h-12 p-0.5',
+    logoClass: 'object-cover object-center scale-[1.12]',
   },
   {
     id: 'stripe',
@@ -46,6 +48,8 @@ const PAYMENT_METHODS = [
     desc: 'International Cards',
     logoSrc: '/stripe.png',
     logoAlt: 'Stripe logo',
+    logoWrapClass: 'bg-white rounded-lg w-12 h-12',
+    logoClass: 'object-cover',
   },
 ];
 
@@ -137,11 +141,11 @@ export function PaymentPage() {
                       selectedMethod === m.id ? 'border-blue-500/40 bg-blue-500/5' : 'border-white/[0.06] bg-[#0B0B0E] hover:border-white/10'
                     )}
                   >
-                    <span className="bg-white rounded-lg w-10 h-10 p-1.5 flex items-center justify-center shrink-0 overflow-hidden">
+                    <span className={cn('flex items-center justify-center shrink-0 overflow-hidden', m.logoWrapClass)}>
                       <img
                         src={m.logoSrc}
                         alt={m.logoAlt}
-                        className="w-full h-full object-contain"
+                        className={cn('w-full h-full', m.logoClass)}
                         loading="lazy"
                       />
                     </span>
