@@ -5,7 +5,7 @@ import {
   Shield, FileText, AlertTriangle,
   ArrowRight, Upload, Zap, Lock, Share2, Download, Loader2,
   Scale, FileSearch, ClipboardCheck, Gavel, Building2,
-  ChevronRight, Check, Star, Users, BarChart3
+  Star
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { PublicNavbar } from '../components/PublicNavbar';
@@ -210,7 +210,6 @@ function RegulationsSection() {
 // ─── How It Works ─────────────────────────────────────────────────────────────
 const HOW_STEPS = [
   {
-    num: '01',
     icon: Upload,
     title: 'Upload Your Contract',
     desc: 'Supports PDF, DOCX, and TXT files up to 10MB. Your document is processed securely in-memory.',
@@ -219,7 +218,6 @@ const HOW_STEPS = [
     border: 'border-blue-500/20',
   },
   {
-    num: '02',
     icon: FileSearch,
     title: 'AI Clause Detection',
     desc: 'Our LangChain + RAG pipeline extracts every clause and maps it to relevant sections of Indian law.',
@@ -228,7 +226,6 @@ const HOW_STEPS = [
     border: 'border-purple-500/20',
   },
   {
-    num: '03',
     icon: ClipboardCheck,
     title: 'Risk Scoring & Fixes',
     desc: 'Each clause is tagged Safe, Risky, or Non-compliant with AI-generated fix suggestions.',
@@ -237,7 +234,6 @@ const HOW_STEPS = [
     border: 'border-amber-500/20',
   },
   {
-    num: '04',
     icon: Share2,
     title: 'Export & Share',
     desc: 'Download a PDF report or generate a shareable link for your client, legal team, or co-founder.',
@@ -271,7 +267,7 @@ function HowItWorksSection() {
             const Icon = step.icon;
             return (
               <motion.div
-                key={step.num}
+                key={step.title}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-50px' }}
@@ -284,7 +280,6 @@ function HowItWorksSection() {
                     <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
                       <Icon size={20} className="text-blue-400" />
                     </div>
-                    <span className="text-xs font-black tracking-widest text-blue-400">{step.num}</span>
                   </div>
                   <h4 className="font-bold text-white mb-2">{step.title}</h4>
                   <p className="text-sm text-slate-400 leading-relaxed">{step.desc}</p>
@@ -300,55 +295,223 @@ function HowItWorksSection() {
 
 // ─── Features Grid ────────────────────────────────────────────────────────────
 const FEATURES = [
-  { icon: Zap, title: 'Results in under 30s', desc: 'Powered by OpenAI + LangChain + FAISS vector search for fast, accurate retrieval.' },
-  { icon: Shield, title: 'Indian Law Native', desc: 'Trained specifically on DPDP, GST, Contract Act, and Labour laws — not generic global law.' },
-  { icon: AlertTriangle, title: 'Risk Color Coding', desc: 'Safe · Risky · Non-compliant. Instantly see where your exposure lies.' },
-  { icon: Zap, title: 'AI Fix Suggestions', desc: 'Get specific, actionable rewrites for every non-compliant or risky clause.' },
-  { icon: Download, title: 'PDF Export', desc: 'Download a clean, printable compliance report to share with stakeholders.' },
-  { icon: Share2, title: 'Shareable Reports', desc: 'Generate a public link for clients or co-founders to view the report without logging in.' },
-  { icon: Lock, title: 'Secure Processing', desc: 'Documents are processed in-memory. We never permanently store your legal files.' },
-  { icon: FileText, title: 'Multi-format Support', desc: 'Works with PDF, DOCX, DOC, and TXT contracts up to 10MB.' },
+  {
+    icon: Zap,
+    title: 'Results in under 30s',
+    desc: 'Powered by OpenAI + LangChain + FAISS vector search for fast, accurate retrieval.',
+    signal: 'Fast Path',
+    latency: '< 30s',
+    modules: ['Instant clause ingestion', 'Parallel risk evaluation', 'Priority mismatch alerts', 'Summary packet generation'],
+  },
+  {
+    icon: Shield,
+    title: 'Indian Law Native',
+    desc: 'Trained specifically on DPDP, GST, Contract Act, and Labour laws -- not generic global law.',
+    signal: 'Policy Core',
+    latency: 'Realtime',
+    modules: ['DPDP consent checks', 'GST clause validation', 'Contract Act mapping', 'Labour law gap tracing'],
+  },
+  {
+    icon: AlertTriangle,
+    title: 'Risk Color Coding',
+    desc: 'Safe · Risky · Non-compliant. Instantly see where your exposure lies.',
+    signal: 'Risk Engine',
+    latency: 'Instant',
+    modules: ['Severity score assignment', 'Queue by legal exposure', 'Red flag surfacing', 'Color label synchronization'],
+  },
+  {
+    icon: ClipboardCheck,
+    title: 'AI Fix Suggestions',
+    desc: 'Get specific, actionable rewrites for every non-compliant or risky clause.',
+    signal: 'Rewrite AI',
+    latency: 'Adaptive',
+    modules: ['Rewrite candidate generation', 'Legal tone calibration', 'Fallback rewrite strategy', 'Counsel-ready alternatives'],
+  },
+  {
+    icon: Download,
+    title: 'PDF Export',
+    desc: 'Download a clean, printable compliance report to share with stakeholders.',
+    signal: 'Export Node',
+    latency: '< 10s',
+    modules: ['Template render engine', 'Clause summary bundling', 'Evidence appendix merge', 'Final PDF packaging'],
+  },
+  {
+    icon: Share2,
+    title: 'Shareable Reports',
+    desc: 'Generate a public link for clients or co-founders to view the report without logging in.',
+    signal: 'Share Gateway',
+    latency: 'One Click',
+    modules: ['Secure URL minting', 'Read-only viewer mode', 'Snapshot state caching', 'Access log visibility'],
+  },
+  {
+    icon: Lock,
+    title: 'Secure Processing',
+    desc: 'Documents are processed in-memory. We never permanently store your legal files.',
+    signal: 'Secure Core',
+    latency: 'Isolated',
+    modules: ['In-memory pipeline', 'Workspace isolation', 'Auto purge sequence', 'Access boundary checks'],
+  },
+  {
+    icon: FileText,
+    title: 'Multi-format Support',
+    desc: 'Works with PDF, DOCX, DOC, and TXT contracts up to 10MB.',
+    signal: 'Ingestion Hub',
+    latency: 'Adaptive',
+    modules: ['PDF parser', 'DOCX extraction', 'Text normalizer', 'Chunk quality validation'],
+  },
 ];
 
 function FeaturesGrid() {
+  const [activeFeature, setActiveFeature] = React.useState(0);
+  const active = FEATURES[activeFeature];
+  const ActiveIcon = active.icon;
+
   return (
-    <section className="py-14 sm:py-20 lg:py-24 border-t border-white/[0.05]">
+    <section className="py-12 sm:py-16 lg:py-20 border-t border-white/[0.05]">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-100px' }}
         transition={{ duration: 0.5 }}
-        className="text-center mb-14"
+        className="text-center mb-10"
       >
         <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-          Everything you need for contract compliance.
+          Collective Compliance Command Interface.
         </h2>
-        <p className="text-slate-400 max-w-[480px] mx-auto">
-          No bloated features. Just the tools Indian businesses need to stay legally safe.
+        <p className="text-slate-400 max-w-[520px] mx-auto">
+          One unified console for module selection, live operations, and legal signal monitoring.
         </p>
       </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {FEATURES.map((f, i) => {
-          const Icon = f.icon;
-          return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-80px' }}
+        transition={{ duration: 0.45 }}
+        className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#05070c]"
+      >
+        <div className="absolute inset-0 pointer-events-none opacity-20 [background-image:linear-gradient(to_right,rgba(56,189,248,0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(56,189,248,0.12)_1px,transparent_1px)] [background-size:44px_44px]" />
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_80%_0%,rgba(29,78,216,0.22),transparent_45%)]" />
+
+        <div className="relative border-b border-white/[0.08] px-4 sm:px-6 py-3 flex items-center gap-3">
+          <span className="text-[10px] uppercase tracking-[0.2em] font-semibold text-slate-500">Active Protocol</span>
+          <div className="h-4 w-px bg-white/[0.12]" />
+          <span className="text-sm font-semibold text-white">{active.title}</span>
+        </div>
+
+        <div className="relative grid grid-cols-1 lg:grid-cols-[300px_1fr] lg:min-h-[500px]">
+          <aside className="border-b lg:border-b-0 lg:border-r border-white/[0.08] p-3.5 sm:p-4">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-semibold">Module Selection</p>
+            <p className="text-lg font-semibold text-white mt-1">Command Interface</p>
+
+            <div className="mt-3 space-y-1.5">
+              {FEATURES.map((feature, i) => {
+                const Icon = feature.icon;
+                const isActive = i === activeFeature;
+
+                return (
+                  <button
+                    key={feature.title}
+                    type="button"
+                    onClick={() => setActiveFeature(i)}
+                    className={cn(
+                      'w-full text-left rounded-2xl border px-3 py-2.5 transition-colors duration-200',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60',
+                      isActive
+                        ? 'border-white/15 bg-white/[0.06] shadow-[0_0_0_1px_rgba(148,163,184,0.2)]'
+                        : 'border-transparent hover:border-white/10 hover:bg-white/[0.03]'
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        'w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 transition-colors',
+                        isActive ? 'bg-cyan-500/12 border-cyan-400/35' : 'bg-white/[0.05] border-white/10'
+                      )}>
+                        <Icon size={15} className={cn(isActive ? 'text-cyan-300' : 'text-slate-300')} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-white truncate">{feature.title}</p>
+                        <p className="text-[10px] tracking-[0.16em] uppercase text-slate-500">
+                          Status: <span className={isActive ? 'text-cyan-300' : 'text-slate-500'}>{isActive ? 'Active' : 'Standby'}</span>
+                        </p>
+                      </div>
+                      {isActive ? <span className="w-2 h-2 rounded-full bg-white shadow-[0_0_14px_rgba(255,255,255,0.8)]" /> : null}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-4 pt-2.5 border-t border-white/[0.08] flex items-center justify-between text-[10px] tracking-[0.18em] uppercase text-slate-500">
+              <span>sys_v2.4.0</span>
+              <span className="inline-flex items-center gap-1.5 text-emerald-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                Online
+              </span>
+            </div>
+          </aside>
+
+          <div className="p-4 sm:p-6">
             <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-30px' }}
-              transition={{ duration: 0.35, delay: i * 0.05 }}
-              className="bg-[#0B0B0E] border border-white/[0.06] p-6 rounded-2xl hover:border-white/[0.12] hover:bg-[#0f0f12] transition-colors duration-200 group cursor-default"
+              key={active.title}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25 }}
             >
-              <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center mb-4 group-hover:bg-blue-500/20 transition-colors">
-                <Icon size={18} className="text-blue-400" />
+              <div className="mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-center shrink-0">
+                    <ActiveIcon size={17} className="text-cyan-300" />
+                  </div>
+                  <h3 className="text-3xl md:text-4xl font-bold tracking-tight text-white">{active.title}</h3>
+                </div>
+                <p className="mt-2 ml-12 text-slate-300 text-base max-w-[700px] leading-relaxed">{active.desc}</p>
               </div>
-              <h4 className="font-semibold text-white mb-2">{f.title}</h4>
-              <p className="text-sm text-slate-400 leading-relaxed">{f.desc}</p>
+
+              <div className="mt-6">
+                <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+                  <p className="text-[11px] tracking-[0.18em] uppercase font-semibold text-slate-500">Live Operations Queue</p>
+                  <div className="flex gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600" />
+                  </div>
+                </div>
+
+                <div className="mt-3 space-y-2.5">
+                  {active.modules.map((module, i) => {
+                    const threadId = `${active.signal.replace(/\s+/g, '').slice(0, 4).toUpperCase()}-${activeFeature + 1}${i + 1}G`;
+                    const opLatency = `${11 + i * 4}ms`;
+
+                    return (
+                      <motion.div
+                        key={module}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.25, delay: i * 0.04 }}
+                        className="rounded-xl border border-cyan-500/35 bg-[#040911]/90 px-3.5 sm:px-4 py-2.5 flex items-center gap-3"
+                      >
+                        <div className="w-7 h-7 rounded-md border border-cyan-500/40 text-cyan-300 text-[10px] font-semibold flex items-center justify-center shrink-0">
+                          {String(i + 1).padStart(2, '0')}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-white font-semibold truncate">{module}</p>
+                          <p className="text-[10px] tracking-[0.14em] uppercase text-slate-500 truncate">
+                            Thread_ID: {threadId} · Latency: {opLatency}
+                          </p>
+                        </div>
+                        <span className="shrink-0 rounded-md border border-cyan-500/45 bg-cyan-500/10 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-cyan-300 font-semibold">
+                          Active
+                        </span>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
             </motion.div>
-          );
-        })}
-      </div>
+          </div>
+        </div>
+      </motion.div>
     </section>
   );
 }
@@ -463,7 +626,6 @@ function BottomCTA() {
     </section>
   );
 }
-
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export function LandingPage() {

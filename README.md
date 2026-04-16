@@ -58,7 +58,7 @@ ContractCheck AI is a full-stack legal compliance platform designed for Indian b
 | Tailwind CSS v4 | Utility-first styling |
 | React Router v7 | Client-side routing (Data mode with `createBrowserRouter`) |
 | Motion (Framer Motion) | Animations and transitions |
-| jsPDF | Client-side PDF report generation |
+| pdfmaker | Client-side PDF report generation |
 | Lucide React | Icon library |
 | Radix UI | Accessible UI primitives |
 
@@ -156,7 +156,7 @@ Protected routes are wrapped in a `ProtectedRoute` component that checks `AuthCo
 
 ### PDF Export
 
-The ResultPage generates professional PDF reports using jsPDF with:
+The ResultPage generates professional PDF reports using pdfmaker with:
 - Dark gradient header with branding
 - Score ring badge with color-coded risk indicator
 - Summary stats in colored boxes (Safe/Risky/Non-compliant)
