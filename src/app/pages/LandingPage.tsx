@@ -276,7 +276,7 @@ function HowItWorksSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-50px' }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="bg-[#0B0B0E] border border-white/[0.06] rounded-2xl p-6 hover:border-blue-500/30 hover:bg-[#0d0d12] transition-all group relative overflow-hidden"
+                className="bg-[#0B0B0E] border border-white/[0.06] rounded-2xl p-6 hover:border-blue-500/30 hover:bg-[#0d0d12] transition-colors duration-200 group relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="relative">
@@ -338,7 +338,7 @@ function FeaturesGrid() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-30px' }}
               transition={{ duration: 0.35, delay: i * 0.05 }}
-              className="bg-[#0B0B0E] border border-white/[0.06] p-6 rounded-2xl hover:border-white/[0.12] hover:bg-[#0f0f12] transition-all group cursor-default"
+              className="bg-[#0B0B0E] border border-white/[0.06] p-6 rounded-2xl hover:border-white/[0.12] hover:bg-[#0f0f12] transition-colors duration-200 group cursor-default"
             >
               <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center mb-4 group-hover:bg-blue-500/20 transition-colors">
                 <Icon size={18} className="text-blue-400" />
@@ -397,7 +397,7 @@ function SocialProof() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
             transition={{ duration: 0.4, delay: i * 0.1 }}
-            className="bg-[#0B0B0E] border border-white/[0.06] rounded-2xl p-6 hover:border-white/[0.12] transition-all"
+            className="bg-[#0B0B0E] border border-white/[0.06] rounded-2xl p-6 hover:border-white/[0.12] transition-colors duration-200"
           >
             <div className="flex gap-1 mb-4">
               {[...Array(5)].map((_, j) => (

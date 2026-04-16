@@ -82,7 +82,7 @@ function CoreCapabilities() {
           whileInView={{ opacity: 1, x: 0 }} 
           viewport={{ once: true, margin: '-50px' }} 
           transition={{ duration: 0.6 }} 
-          className="bg-gradient-to-b from-white/[0.03] to-[#060608] border border-white/[0.08] rounded-3xl p-8 md:p-10 hover:border-blue-500/30 transition-all duration-500 group shadow-2xl relative overflow-hidden"
+          className="bg-gradient-to-b from-white/[0.03] to-[#060608] border border-white/[0.08] rounded-3xl p-8 md:p-10 hover:border-blue-500/30 transition-[background-color,border-color,box-shadow] duration-500 group shadow-2xl relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] -mr-32 -mt-32 group-hover:bg-blue-500/20 transition-all duration-700 pointer-events-none" />
           
@@ -115,7 +115,7 @@ function CoreCapabilities() {
           whileInView={{ opacity: 1, x: 0 }} 
           viewport={{ once: true, margin: '-50px' }} 
           transition={{ duration: 0.6, delay: 0.1 }} 
-          className="bg-gradient-to-b from-white/[0.03] to-[#060608] border border-white/[0.08] rounded-3xl p-8 md:p-10 hover:border-blue-500/30 transition-all duration-500 group shadow-2xl relative overflow-hidden"
+          className="bg-gradient-to-b from-white/[0.03] to-[#060608] border border-white/[0.08] rounded-3xl p-8 md:p-10 hover:border-blue-500/30 transition-[background-color,border-color,box-shadow] duration-500 group shadow-2xl relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] -mr-32 -mt-32 group-hover:bg-purple-500/20 transition-all duration-700 pointer-events-none" />
           
@@ -173,7 +173,7 @@ function UseCasesSection() {
               whileInView={{ opacity: 1, y: 0 }} 
               viewport={{ once: true, margin: '-50px' }} 
               transition={{ duration: 0.5, delay: i * 0.05 }} 
-              className={cn("bg-[#0B0B0E] border border-white/[0.06] rounded-3xl p-8 transition-all duration-500 group relative overflow-hidden shadow-lg hover:-translate-y-1", uc.hoverBorder, uc.hoverShadow)}
+              className={cn("bg-[#0B0B0E] border border-white/[0.06] rounded-3xl p-8 transition-[background-color,border-color,box-shadow] duration-500 group relative overflow-hidden shadow-lg", uc.hoverBorder, uc.hoverShadow)}
             >
               <div className={cn("absolute -right-20 -top-20 w-48 h-48 blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none", uc.bg)} />
               
@@ -222,7 +222,7 @@ function RegulationsSection() {
               whileInView={{ opacity: 1, y: 0 }} 
               viewport={{ once: true, margin: '-50px' }} 
               transition={{ duration: 0.5, delay: i * 0.1 }} 
-              className={cn('rounded-3xl border p-8 transition-all duration-500 hover:-translate-y-2 group cursor-default relative overflow-hidden bg-white/[0.02] backdrop-blur-md shadow-lg', reg.border, reg.shadow, reg.hoverBg)}
+              className={cn('rounded-3xl border p-8 transition-[background-color,border-color,box-shadow] duration-500 group cursor-default relative overflow-hidden bg-white/[0.02] backdrop-blur-md shadow-lg', reg.border, reg.shadow, reg.hoverBg)}
             >
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none bg-gradient-to-br from-white/[0.03] to-transparent" />
               
