@@ -25,6 +25,23 @@ const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
+function normalizeModelId(input: string | undefined | null): string | null {
+  if (!input) return null;
+  const raw = input.trim();
+  if (!raw) return null;
+
+  const key = raw.toLowerCase();
+
+  // Allow AI Studio display names as secrets to reduce user error.
+  if (key === 'gemini 2.5 flash') return 'gemini-2.5-flash';
+  if (key === 'gemini 2.5 flash lite') return 'gemini-2.5-flash-lite';
+  if (key === 'gemini 2.5 flash-lite') return 'gemini-2.5-flash-lite';
+  if (key === 'gemma 3 4b') return 'gemma-3-4b-it';
+  if (key === 'gemma 3 27b') return 'gemma-3-27b-it';
+
+  return raw;
+}
+
 function json(data: unknown, init: ResponseInit = {}) {
   return new Response(JSON.stringify(data), {
     ...init,
@@ -132,7 +149,7 @@ async function callGeminiStructured(args: {
       temperature: 0.2,
       responseMimeType: 'application/json',
       responseSchema,
-      maxOutputTokens: 4096,
+      maxOutputTokens: 3072,
     },
   };
 
@@ -144,7 +161,10 @@ async function callGeminiStructured(args: {
 
   if (!res.ok) {
     const msg = await res.text().catch(() => '');
-    throw new Error(`Gemini API failed (${res.status}): ${msg.slice(0, 500)}`);
+    const err = new Error(`Gemini API failed (${res.status}): ${msg.slice(0, 500)}`);
+    (err as any).status = res.status;
+    (err as any).body = msg;
+    throw err;
   }
 
   const data = await res.json();
@@ -188,12 +208,30 @@ async function callGeminiFallback(args: {
 
   if (!res.ok) {
     const msg = await res.text().catch(() => '');
-    throw new Error(`Gemini API failed (${res.status}): ${msg.slice(0, 500)}`);
+    const err = new Error(`Gemini API failed (${res.status}): ${msg.slice(0, 500)}`);
+    (err as any).status = res.status;
+    (err as any).body = msg;
+    throw err;
   }
 
   const data = await res.json();
   const text = pickTextFromGeminiResponse(data);
   return tryParseJson(text);
+}
+
+function shouldFallbackToPlainJson(err: unknown): boolean {
+  const status = typeof (err as any)?.status === 'number' ? (err as any).status : null;
+  const body = String((err as any)?.body ?? (err as any)?.message ?? '');
+
+  // Don't make a second request on auth/rate-limit problems.
+  if (status === 401 || status === 403 || status === 429) return false;
+
+  // Fallback only when the API rejects the structured-output fields.
+  if (status === 400) {
+    return /responseSchema|responseMimeType|Unknown name|Invalid JSON payload/i.test(body);
+  }
+
+  return false;
 }
 
 Deno.serve(async (req) => {
@@ -202,9 +240,12 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-  const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  // Supabase Secrets UI disallows secret names starting with SUPABASE_.
+  // Use SERVICE_ROLE_KEY as the recommended secret name.
+  const supabaseServiceRoleKey =
+    Deno.env.get('SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-  const geminiModel = Deno.env.get('GEMINI_MODEL') ?? 'gemini-1.5-flash';
+  const geminiModel = normalizeModelId(Deno.env.get('GEMINI_MODEL')) ?? 'gemini-1.5-flash';
   const foundationDocs = Deno.env.get('FOUNDATION_DOCS') ?? '';
 
   if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceRoleKey) {
@@ -280,7 +321,8 @@ Deno.serve(async (req) => {
         systemPrompt,
         userPrompt,
       });
-    } catch {
+    } catch (err) {
+      if (!shouldFallbackToPlainJson(err)) throw err;
       raw = await callGeminiFallback({
         apiKey: geminiApiKey,
         model: geminiModel,
