@@ -68,16 +68,18 @@ export async function apiUploadContract(
     await supabase.rpc('increment_uploads_used', { user_id_input: userId });
   }
 
-  // Kick off async analysis immediately after report creation.
-  // This is intentionally fire-and-forget so the UI can move to ProcessPage fast.
-  void apiStartContractAnalysis(report.id, extractedText).catch(async (err) => {
-    const message = err instanceof Error ? err.message : 'Could not start analysis pipeline.';
-    await supabase
-      .from('reports')
-      .update({ status: 'failed', error_message: message.slice(0, 500) })
-      .eq('id', report.id)
-      .eq('user_id', userId);
-  });
+  // Optionally start analysis immediately if extracted text is available.
+  // (In the UI we usually upload first and extract in parallel, then call apiStartContractAnalysis.)
+  if (extractedText && extractedText.trim().length > 0) {
+    void apiStartContractAnalysis(report.id, extractedText).catch(async (err) => {
+      const message = err instanceof Error ? err.message : 'Could not start analysis pipeline.';
+      await supabase
+        .from('reports')
+        .update({ status: 'failed', error_message: message.slice(0, 500) })
+        .eq('id', report.id)
+        .eq('user_id', userId);
+    });
+  }
 
   return {
     report_id: report.id,
@@ -87,15 +89,40 @@ export async function apiUploadContract(
 }
 
 export async function apiStartContractAnalysis(reportId: string, extractedText: string): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const accessToken = session?.access_token;
+  if (!accessToken) {
+    throw new Error('Not authenticated (missing access token). Please log in again.');
+  }
+
   const { error } = await supabase.functions.invoke('analyze-contract', {
     body: {
       report_id: reportId,
       extracted_text: extractedText,
     },
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      // Supabase Functions gateway expects the project key too.
+      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+    },
   });
 
   if (error) {
-    throw new Error(`Edge function error: ${error.message}`);
+    const status = (error as any)?.context?.status ?? (error as any)?.status;
+    const statusText = typeof status === 'number' ? ` (HTTP ${status})` : '';
+    throw new Error(`Edge function error${statusText}: ${error.message}`);
+  }
+}
+
+export async function apiMarkReportFailed(reportId: string, message: string): Promise<void> {
+  const safe = (message || 'Analysis failed.').slice(0, 500);
+  const { error } = await supabase
+    .from('reports')
+    .update({ status: 'failed', error_message: safe })
+    .eq('id', reportId);
+
+  if (error) {
+    console.warn('Failed to mark report failed:', error.message);
   }
 }
 

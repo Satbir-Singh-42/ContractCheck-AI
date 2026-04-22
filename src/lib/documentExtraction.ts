@@ -20,6 +20,7 @@ async function extractPdfText(file: File): Promise<string> {
 
   const pdf = await loadingTask.promise;
   const pages: string[] = [];
+  let approxChars = 0;
 
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
     const page = await pdf.getPage(pageNumber);
@@ -29,6 +30,8 @@ async function extractPdfText(file: File): Promise<string> {
       .join(' ');
 
     pages.push(pageText);
+    approxChars += pageText.length;
+    if (approxChars >= MAX_EXTRACTED_CHARS) break;
   }
 
   return normalizeExtractedText(pages.join('\n'));

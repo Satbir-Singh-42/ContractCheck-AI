@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
 import { useTopNavigate } from '../hooks/useTopNavigate';
-import { apiUploadContract } from '../../lib/api';
+import { apiMarkReportFailed, apiStartContractAnalysis, apiUploadContract } from '../../lib/api';
 import { extractTextFromFile } from '../../lib/documentExtraction';
 import { cn } from '../../lib/utils';
 
@@ -12,6 +12,13 @@ const ACCEPTED = ['.pdf', '.docx', '.doc', '.txt'];
 const MAX_MB = 10;
 
 type Stage = 'idle' | 'uploading' | 'done' | 'error';
+
+function formatFileSize(bytes: number) {
+  const mb = bytes / (1024 * 1024);
+  if (mb >= 0.1) return `${mb.toFixed(2)} MB`;
+  const kb = bytes / 1024;
+  return `${kb.toFixed(1)} KB`;
+}
 
 export function UploadPage() {
   const { user } = useAuth();
@@ -56,11 +63,8 @@ export function UploadPage() {
     }, 200);
 
     try {
-      const extractedText = await extractTextFromFile(file);
-      if (!extractedText) {
-        throw new Error('Could not extract text from this file. Try a text-based PDF, DOCX, or TXT (scanned PDFs and .DOC are not supported yet).');
-      }
-      const response = await apiUploadContract(file, undefined, 1, extractedText);
+      const extractionPromise = extractTextFromFile(file);
+      const response = await apiUploadContract(file);
       clearInterval(ticker);
       setProgress(100);
       setStage('done');
@@ -68,6 +72,20 @@ export function UploadPage() {
       // Brief moment to show "Upload complete" then hand off to ProcessPage
       await new Promise(r => setTimeout(r, 400));
       navigate(`/process/${response.report_id}`);
+
+      // Continue extraction + start analysis while the user is on the Process screen.
+      void (async () => {
+        try {
+          const extractedText = await extractionPromise;
+          if (!extractedText) {
+            throw new Error('Could not extract text from this file. Try a text-based PDF, DOCX, or TXT (scanned PDFs and .DOC are not supported yet).');
+          }
+          await apiStartContractAnalysis(response.report_id, extractedText);
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : 'Could not extract text / start analysis.';
+          await apiMarkReportFailed(response.report_id, msg);
+        }
+      })();
     } catch (err: unknown) {
       clearInterval(ticker);
       const msg = err instanceof Error ? err.message : 'Upload failed. Please try again.';
@@ -160,7 +178,7 @@ export function UploadPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-white truncate">{file.name}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{(file.size / 1024).toFixed(1)} KB</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{formatFileSize(file.size)}</p>
                 </div>
                 {stage === 'idle' || stage === 'error' ? (
                   <button
@@ -175,7 +193,7 @@ export function UploadPage() {
               {stage !== 'idle' && stage !== 'error' && (
                 <div className="mt-4">
                   <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-                    <span>{stage === 'done' ? 'Upload complete!' : 'Uploading & extracting text...'}</span>
+                    <span>{stage === 'done' ? 'Upload complete!' : 'Uploading contract...'}</span>
                     <span>{progress}%</span>
                   </div>
                   <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">

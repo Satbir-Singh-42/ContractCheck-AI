@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { Shield, Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +8,7 @@ import { useTopNavigate } from '../hooks/useTopNavigate';
 export function SignupPage() {
   const { signup, user, isLoading } = useAuth();
   const navigate = useTopNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -39,9 +40,10 @@ export function SignupPage() {
 
   React.useEffect(() => {
     if (user && !isLoading) {
-      navigate('/dashboard', { replace: true });
+      const from = (location.state as any)?.from as string | undefined;
+      navigate(from || '/dashboard', { replace: true });
     }
-  }, [user, isLoading, navigate]);
+  }, [user, isLoading, navigate, location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +72,7 @@ export function SignupPage() {
         setNotice('Account created successfully. Please verify your email before signing in.');
         return;
       }
-      navigate('/dashboard');
+      // Redirect happens via the useEffect once `user` is committed in context.
     } catch (err) {
       setError(getSignupFailureReason(err));
     } finally {

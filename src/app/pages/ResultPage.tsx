@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
-import { apiGetReport, apiShareReport, apiGetReportVersions, apiUploadContract, type ReportVersion } from '../../lib/api';
+import { apiGetReport, apiMarkReportFailed, apiShareReport, apiGetReportVersions, apiStartContractAnalysis, apiUploadContract, type ReportVersion } from '../../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useTopNavigate } from '../hooks/useTopNavigate';
 import type { ReportResponse } from '../../lib/schema';
@@ -408,16 +408,26 @@ export function ResultPage() {
                 if (!file || !report) return;
                 setIsUploading(true);
                 try {
-                  const extractedText = await extractTextFromFile(file);
-                  if (!extractedText) {
-                    throw new Error('Could not extract text from this file. Try a text-based PDF, DOCX, or TXT (scanned PDFs and .DOC are not supported yet).');
-                  }
+                  const extractionPromise = extractTextFromFile(file);
                   const rootId = versions.length > 0 ? (versions[0].id) : report.id;
                   const nextV = versions.length > 0 ? Math.max(...versions.map(v => v.version_number)) + 1 : 2;
-                  const res = await apiUploadContract(file, rootId, nextV, extractedText);
+                  const res = await apiUploadContract(file, rootId, nextV);
                   // Brief pause for aesthetics, then navigate to process
                   await new Promise(r => setTimeout(r, 600));
                   navigate(`/process/${res.report_id}`);
+
+                  void (async () => {
+                    try {
+                      const extractedText = await extractionPromise;
+                      if (!extractedText) {
+                        throw new Error('Could not extract text from this file. Try a text-based PDF, DOCX, or TXT (scanned PDFs and .DOC are not supported yet).');
+                      }
+                      await apiStartContractAnalysis(res.report_id, extractedText);
+                    } catch (err: unknown) {
+                      const msg = err instanceof Error ? err.message : 'Could not extract text / start analysis.';
+                      await apiMarkReportFailed(res.report_id, msg);
+                    }
+                  })();
                 } catch (err) {
                   alert("Failed to upload revision: " + (err instanceof Error ? err.message : String(err)));
                   setIsUploading(false);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { Eye, EyeOff, Loader2, Shield } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +8,7 @@ import { useTopNavigate } from '../hooks/useTopNavigate';
 export function LoginPage() {
   const { login, user, isLoading } = useAuth();
   const navigate = useTopNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -15,9 +16,10 @@ export function LoginPage() {
 
   React.useEffect(() => {
     if (user && !isLoading) {
-      navigate('/dashboard', { replace: true });
+      const from = (location.state as any)?.from as string | undefined;
+      navigate(from || '/dashboard', { replace: true });
     }
-  }, [user, isLoading, navigate]);
+  }, [user, isLoading, navigate, location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +32,7 @@ export function LoginPage() {
         login(form.email, form.password),
         timeout
       ]);
-      navigate('/dashboard');
+      // Redirect happens via the useEffect once `user` is committed in context.
     } catch (err: any) {
       console.error("Login attempt failed:", err);
       // If it explicitly timed out, suggest clearing cache
