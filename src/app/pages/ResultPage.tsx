@@ -12,6 +12,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTopNavigate } from '../hooks/useTopNavigate';
 import type { ReportResponse } from '../../lib/schema';
 import { cn } from '../../lib/utils';
+import { extractTextFromFile } from '../../lib/documentExtraction';
 import {
   downloadCompliancePdf,
   type PdfClause,
@@ -407,9 +408,13 @@ export function ResultPage() {
                 if (!file || !report) return;
                 setIsUploading(true);
                 try {
+                  const extractedText = await extractTextFromFile(file);
+                  if (!extractedText) {
+                    throw new Error('Could not extract text from this file. Try a text-based PDF, DOCX, or TXT (scanned PDFs and .DOC are not supported yet).');
+                  }
                   const rootId = versions.length > 0 ? (versions[0].id) : report.id;
                   const nextV = versions.length > 0 ? Math.max(...versions.map(v => v.version_number)) + 1 : 2;
-                  const res = await apiUploadContract(file, rootId, nextV);
+                  const res = await apiUploadContract(file, rootId, nextV, extractedText);
                   // Brief pause for aesthetics, then navigate to process
                   await new Promise(r => setTimeout(r, 600));
                   navigate(`/process/${res.report_id}`);

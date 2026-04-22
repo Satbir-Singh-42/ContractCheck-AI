@@ -34,7 +34,12 @@ export async function apiUpdateProfile(data: { name?: string; email?: string }) 
 
 // ─── Reports ──────────────────────────────────────────────────────────────────
 
-export async function apiUploadContract(file: File, parentReportId?: string, versionNumber: number = 1): Promise<UploadResponse> {
+export async function apiUploadContract(
+  file: File,
+  parentReportId?: string,
+  versionNumber: number = 1,
+  extractedText: string = ''
+): Promise<UploadResponse> {
   const userId = await getUserId();
   const fileExt = file.name.split('.').pop()?.toLowerCase() || 'txt';
   const filePath = `${userId}/${Date.now()}_original.${fileExt}`;
@@ -63,14 +68,35 @@ export async function apiUploadContract(file: File, parentReportId?: string, ver
     await supabase.rpc('increment_uploads_used', { user_id_input: userId });
   }
 
-  // Note: Your AI RAG via n8n should trigger on this INSERT event from Supabase 
-  // or you can fire a webhook to n8n here directly.
+  // Kick off async analysis immediately after report creation.
+  // This is intentionally fire-and-forget so the UI can move to ProcessPage fast.
+  void apiStartContractAnalysis(report.id, extractedText).catch(async (err) => {
+    const message = err instanceof Error ? err.message : 'Could not start analysis pipeline.';
+    await supabase
+      .from('reports')
+      .update({ status: 'failed', error_message: message.slice(0, 500) })
+      .eq('id', report.id)
+      .eq('user_id', userId);
+  });
 
   return {
     report_id: report.id,
     status: 'processing',
     estimated_seconds: 45,
   };
+}
+
+export async function apiStartContractAnalysis(reportId: string, extractedText: string): Promise<void> {
+  const { error } = await supabase.functions.invoke('analyze-contract', {
+    body: {
+      report_id: reportId,
+      extracted_text: extractedText,
+    },
+  });
+
+  if (error) {
+    throw new Error(`Edge function error: ${error.message}`);
+  }
 }
 
 export interface ReportVersion {

@@ -11,7 +11,7 @@ create extension if not exists "uuid-ossp";
 -- =========================================================================================
 
 -- Users table automatically matches the built-in auth.users
-CREATE TABLE public.profiles (
+CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE public.profiles (
 );
 
 -- Reports table
-CREATE TABLE public.reports (
+CREATE TABLE IF NOT EXISTS public.reports (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
     file_name VARCHAR(255) NOT NULL,
@@ -55,7 +55,7 @@ CREATE TABLE public.reports (
 );
 
 -- Clauses table
-CREATE TABLE public.clauses (
+CREATE TABLE IF NOT EXISTS public.clauses (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     report_id UUID REFERENCES public.reports(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
@@ -67,7 +67,7 @@ CREATE TABLE public.clauses (
 );
 
 -- Clause issues
-CREATE TABLE public.clause_issues (
+CREATE TABLE IF NOT EXISTS public.clause_issues (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     clause_id UUID REFERENCES public.clauses(id) ON DELETE CASCADE,
     description TEXT NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE public.clause_issues (
 );
 
 -- Clause suggestions
-CREATE TABLE public.clause_suggestions (
+CREATE TABLE IF NOT EXISTS public.clause_suggestions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     clause_id UUID REFERENCES public.clauses(id) ON DELETE CASCADE,
     description TEXT NOT NULL,
@@ -98,6 +98,9 @@ ALTER TABLE public.clause_suggestions ENABLE ROW LEVEL SECURITY;
 -- -------------------------------------------------------------
 -- Profile Policies
 -- -------------------------------------------------------------
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+
 CREATE POLICY "Users can view own profile" 
 ON public.profiles FOR SELECT USING (auth.uid() = id);
 
@@ -107,6 +110,12 @@ ON public.profiles FOR UPDATE USING (auth.uid() = id);
 -- -------------------------------------------------------------
 -- Report Policies (Private + Public Shared)
 -- -------------------------------------------------------------
+DROP POLICY IF EXISTS "Users can view own reports" ON public.reports;
+DROP POLICY IF EXISTS "Users can insert own reports" ON public.reports;
+DROP POLICY IF EXISTS "Users can update own reports" ON public.reports;
+DROP POLICY IF EXISTS "Users can delete own reports" ON public.reports;
+DROP POLICY IF EXISTS "Public can view shared reports" ON public.reports;
+
 CREATE POLICY "Users can view own reports" 
 ON public.reports FOR SELECT USING (auth.uid() = user_id);
 
@@ -127,6 +136,13 @@ ON public.reports FOR SELECT USING (is_shared = true);
 -- -------------------------------------------------------------
 -- Clauses & Sub-tables (Private + Public Shared)
 -- -------------------------------------------------------------
+DROP POLICY IF EXISTS "Users can view clauses of their reports" ON public.clauses;
+DROP POLICY IF EXISTS "Public can view clauses of shared reports" ON public.clauses;
+DROP POLICY IF EXISTS "Users can view issues of their clauses" ON public.clause_issues;
+DROP POLICY IF EXISTS "Public can view issues of shared clauses" ON public.clause_issues;
+DROP POLICY IF EXISTS "Users can view suggestions of their clauses" ON public.clause_suggestions;
+DROP POLICY IF EXISTS "Public can view suggestions of shared clauses" ON public.clause_suggestions;
+
 CREATE POLICY "Users can view clauses of their reports" 
 ON public.clauses FOR SELECT USING (
   EXISTS (SELECT 1 FROM public.reports WHERE reports.id = clauses.report_id AND reports.user_id = auth.uid())
@@ -204,7 +220,118 @@ CREATE TRIGGER on_auth_user_created
 
 
 -- =========================================================================================
--- 6. RPC FUNCTIONS
+-- 6. STORAGE RLS POLICIES (REQUIRED FOR BUCKET UPLOADS)
+-- =========================================================================================
+-- Without these policies, uploads fail with:
+-- "new row violates row-level security policy"
+-- Run this block in Supabase SQL Editor as the project owner role.
+DO $$
+BEGIN
+  -- RLS on storage.objects is managed by Supabase Storage internals.
+  -- Avoid forcing ALTER TABLE here, since some roles can create policies
+  -- but cannot ALTER storage.objects ownership-level settings.
+
+  -- Remove old versions if this script is re-run
+  DROP POLICY IF EXISTS "Public can read avatar files" ON storage.objects;
+  DROP POLICY IF EXISTS "Users can upload avatar files" ON storage.objects;
+  DROP POLICY IF EXISTS "Users can update avatar files" ON storage.objects;
+  DROP POLICY IF EXISTS "Users can delete avatar files" ON storage.objects;
+
+  DROP POLICY IF EXISTS "Users can read own contract files" ON storage.objects;
+  DROP POLICY IF EXISTS "Users can upload own contract files" ON storage.objects;
+  DROP POLICY IF EXISTS "Users can update own contract files" ON storage.objects;
+  DROP POLICY IF EXISTS "Users can delete own contract files" ON storage.objects;
+
+  -- AVATARS BUCKET
+  -- Public read for profile images
+  CREATE POLICY "Public can read avatar files"
+  ON storage.objects
+  FOR SELECT
+  TO public
+  USING (bucket_id = 'avatars');
+
+  -- Authenticated users can only manage files inside their own folder: <auth.uid()>/...
+  CREATE POLICY "Users can upload avatar files"
+  ON storage.objects
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    bucket_id = 'avatars'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+  CREATE POLICY "Users can update avatar files"
+  ON storage.objects
+  FOR UPDATE
+  TO authenticated
+  USING (
+    bucket_id = 'avatars'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  )
+  WITH CHECK (
+    bucket_id = 'avatars'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+  CREATE POLICY "Users can delete avatar files"
+  ON storage.objects
+  FOR DELETE
+  TO authenticated
+  USING (
+    bucket_id = 'avatars'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+  -- CONTRACTS BUCKET
+  -- Private files: each user can only manage files in their own folder
+  CREATE POLICY "Users can read own contract files"
+  ON storage.objects
+  FOR SELECT
+  TO authenticated
+  USING (
+    bucket_id = 'contracts'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+  CREATE POLICY "Users can upload own contract files"
+  ON storage.objects
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    bucket_id = 'contracts'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+  CREATE POLICY "Users can update own contract files"
+  ON storage.objects
+  FOR UPDATE
+  TO authenticated
+  USING (
+    bucket_id = 'contracts'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  )
+  WITH CHECK (
+    bucket_id = 'contracts'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+  CREATE POLICY "Users can delete own contract files"
+  ON storage.objects
+  FOR DELETE
+  TO authenticated
+  USING (
+    bucket_id = 'contracts'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+EXCEPTION
+  WHEN insufficient_privilege THEN
+    RAISE NOTICE 'Skipping storage.objects policy setup due to insufficient privileges. Configure bucket policies manually in Supabase Dashboard > Storage > Policies.';
+END
+$$;
+
+
+-- =========================================================================================
+-- 7. RPC FUNCTIONS
 -- =========================================================================================
 
 -- increment_uploads_used

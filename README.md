@@ -638,8 +638,20 @@ volumes:
 
 ### Frontend (Vercel)
 ```env
-VITE_API_BASE_URL=https://your-api-domain.com/api/v1
+VITE_SUPABASE_URL=https://xxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
 VITE_RAZORPAY_KEY_ID=rzp_live_xxxxx
+```
+
+### Supabase Edge Function (Gemini)
+Set these as Supabase Function Secrets (Project Settings -> Secrets) for `analyze-contract`:
+```env
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
+GEMINI_API_KEY=AIzaSy...
+# Optional
+GEMINI_MODEL=gemini-1.5-flash
+# Optional: paste your 4 foundational legal docs / summaries here
+FOUNDATION_DOCS="..."
 ```
 
 ### Backend

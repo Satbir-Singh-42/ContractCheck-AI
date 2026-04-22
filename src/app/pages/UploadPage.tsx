@@ -5,6 +5,7 @@ import { AppLayout } from '../components/AppLayout';
 import { useAuth } from '../context/AuthContext';
 import { useTopNavigate } from '../hooks/useTopNavigate';
 import { apiUploadContract } from '../../lib/api';
+import { extractTextFromFile } from '../../lib/documentExtraction';
 import { cn } from '../../lib/utils';
 
 const ACCEPTED = ['.pdf', '.docx', '.doc', '.txt'];
@@ -55,7 +56,11 @@ export function UploadPage() {
     }, 200);
 
     try {
-      const response = await apiUploadContract(file);
+      const extractedText = await extractTextFromFile(file);
+      if (!extractedText) {
+        throw new Error('Could not extract text from this file. Try a text-based PDF, DOCX, or TXT (scanned PDFs and .DOC are not supported yet).');
+      }
+      const response = await apiUploadContract(file, undefined, 1, extractedText);
       clearInterval(ticker);
       setProgress(100);
       setStage('done');
