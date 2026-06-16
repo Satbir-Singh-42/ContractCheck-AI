@@ -95,22 +95,29 @@ export async function apiStartContractAnalysis(reportId: string, extractedText: 
     throw new Error('Not authenticated (missing access token). Please log in again.');
   }
 
-  const { error } = await supabase.functions.invoke('analyze-contract', {
-    body: {
+  // Use direct fetch to avoid any header rewriting by the client library.
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY in frontend environment.');
+  }
+
+  const res = await fetch(`${supabaseUrl.replace(/\/$/, '')}/functions/v1/analyze-contract`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
       report_id: reportId,
       extracted_text: extractedText,
-    },
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      // Supabase Functions gateway expects the project key too.
-      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-    },
+    }),
   });
 
-  if (error) {
-    const status = (error as any)?.context?.status ?? (error as any)?.status;
-    const statusText = typeof status === 'number' ? ` (HTTP ${status})` : '';
-    throw new Error(`Edge function error${statusText}: ${error.message}`);
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Edge function error (HTTP ${res.status}): ${text.slice(0, 500) || res.statusText}`);
   }
 }
 
