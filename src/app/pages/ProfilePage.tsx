@@ -12,7 +12,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTopNavigate } from '../hooks/useTopNavigate';
 import { CustomSelect } from '../components/CustomSelect';
 import { cn } from '../../lib/utils';
-import { apiGetReports } from '../../lib/api';
+import { apiGetReports, apiDeleteAccount } from '../../lib/api';
 import type { DBReport } from '../../lib/schema';
 
 type Tab = 'general' | 'plan' | 'notifications' | 'security';
@@ -72,6 +72,7 @@ export function ProfilePage() {
   const [notifDirty, setNotifDirty] = useState(false);
   const [isSavingNotif, setIsSavingNotif] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -121,9 +122,22 @@ export function ProfilePage() {
     setTimeout(() => setSaved(false), 2500);
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      setIsDeleting(true);
+      await apiDeleteAccount();
+      await logout();
+      navigate('/');
+    } catch (err: unknown) {
+      setIsDeleting(false);
+      setDeleteConfirm(false);
+      alert('Failed to delete account: ' + (err instanceof Error ? err.message : String(err)));
+    }
   };
 
   if (!user) return null;
@@ -540,12 +554,17 @@ export function ProfilePage() {
                         <div className="flex items-center gap-2 shrink-0">
                           <button
                             onClick={() => setDeleteConfirm(false)}
-                            className="text-sm text-slate-500 hover:text-slate-300 px-3 py-2 rounded-xl transition-colors"
+                            disabled={isDeleting}
+                            className="text-sm text-slate-500 hover:text-slate-300 px-3 py-2 rounded-xl transition-colors disabled:opacity-50"
                           >
                             Cancel
                           </button>
-                          <button className="text-sm font-semibold text-white bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl transition-colors">
-                            Confirm Delete
+                          <button 
+                            onClick={handleDeleteAccount}
+                            disabled={isDeleting}
+                            className="text-sm font-semibold text-white bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
+                          >
+                            {isDeleting ? 'Deleting...' : 'Confirm Delete'}
                           </button>
                         </div>
                       )}

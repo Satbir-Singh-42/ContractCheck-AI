@@ -40,8 +40,8 @@ export function ContactPage() {
                 </div>
                 <h3 className="font-semibold">Email</h3>
               </div>
-              <p className="text-slate-400 text-sm">support@contractcheck.ai</p>
-              <p className="text-slate-400 text-sm">enterprise@contractcheck.ai</p>
+              <p className="text-slate-400 text-sm">satbirsingh.dev@gmail.com</p>
+              <p className="text-xs text-slate-500 mt-1">We reply within 24 hours</p>
             </div>
 
             <div className="bg-[#0B0B0E] border border-white/[0.06] rounded-2xl p-6">

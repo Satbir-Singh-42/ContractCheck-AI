@@ -20,6 +20,7 @@ export interface PdfReportData {
   type: string;
   parties: string;
   overallRisk: 'High' | 'Medium' | 'Low';
+  complianceScore: number;
   date: string;
   status: string;
   clauses: PdfClause[];
@@ -199,7 +200,7 @@ export function downloadCompliancePdf(report: PdfReportData): void {
   const safe = report.clauses.filter((clause) => clause.riskLevel === 'Safe').length;
   const risky = report.clauses.filter((clause) => clause.riskLevel === 'Risky').length;
   const bad = report.clauses.filter((clause) => clause.riskLevel === 'Non-compliant').length;
-  const score = Math.max(0, Math.round(100 - (bad * 25) - (risky * 10)));
+  const score = report.complianceScore;
 
   const generatedOn = new Date();
   const generatedOnText = generatedOn.toLocaleDateString('en-IN', {

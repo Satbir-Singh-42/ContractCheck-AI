@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS public.clause_issues (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     clause_id UUID REFERENCES public.clauses(id) ON DELETE CASCADE,
     description TEXT NOT NULL,
-    severity VARCHAR(20) CHECK (severity IN ('low', 'medium', 'high', 'critical')),
+    severity VARCHAR(20) DEFAULT 'medium' CHECK (severity IN ('low', 'medium', 'high', 'critical')),
     order_index INTEGER
 );
 
@@ -84,6 +84,19 @@ CREATE TABLE IF NOT EXISTS public.clause_suggestions (
     order_index INTEGER
 );
 
+-- Payments (records every successful Razorpay transaction)
+CREATE TABLE IF NOT EXISTS public.payments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+    razorpay_order_id VARCHAR(255),
+    razorpay_payment_id VARCHAR(255),
+    plan VARCHAR(20) CHECK (plan IN ('pro_monthly', 'pro_annual', 'enterprise')),
+    amount_inr INTEGER NOT NULL,
+    currency VARCHAR(3) DEFAULT 'INR',
+    status VARCHAR(20) DEFAULT 'success' CHECK (status IN ('pending', 'success', 'failed', 'refunded')),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 
 -- =========================================================================================
 -- 3. ROW LEVEL SECURITY (RLS) POLICIES
@@ -94,6 +107,7 @@ ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.clauses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.clause_issues ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.clause_suggestions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 
 -- -------------------------------------------------------------
 -- Profile Policies
@@ -181,6 +195,19 @@ ON public.clause_suggestions FOR SELECT USING (
   )
 );
 
+-- -------------------------------------------------------------
+-- Payments Policies
+-- -------------------------------------------------------------
+DROP POLICY IF EXISTS "Users can view own payments" ON public.payments;
+
+CREATE POLICY "Users can view own payments"
+ON public.payments FOR SELECT USING (auth.uid() = user_id);
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_reports_user_id ON public.reports(user_id);
+CREATE INDEX IF NOT EXISTS idx_reports_status ON public.reports(status);
+CREATE INDEX IF NOT EXISTS idx_clauses_report_id ON public.clauses(report_id);
+CREATE INDEX IF NOT EXISTS idx_payments_user_id ON public.payments(user_id);
 
 -- =========================================================================================
 -- 4. DATABASE TRIGGERS

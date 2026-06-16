@@ -60,9 +60,14 @@ function clampScore(score: number) {
 }
 
 function scoreFromClauses(clauses: { risk_level: RiskLevel }[]) {
+  if (clauses.length === 0) return 100;
+  const total = clauses.length;
+  const safe = clauses.filter((c) => normalizeRiskLevel(c.risk_level) === 'Safe').length;
   const risky = clauses.filter((c) => normalizeRiskLevel(c.risk_level) === 'Risky').length;
   const bad = clauses.filter((c) => normalizeRiskLevel(c.risk_level) === 'Non-compliant').length;
-  return clampScore(100 - bad * 25 - risky * 10);
+  // Weighted score: Safe=100pts, Risky=40pts, Non-compliant=0pts
+  const raw = (safe * 100 + risky * 40 + bad * 0) / total;
+  return clampScore(raw);
 }
 
 function overallRiskFromScore(score: number): 'High' | 'Medium' | 'Low' {
@@ -94,19 +99,30 @@ function pickTextFromGeminiResponse(data: any): string {
   return text;
 }
 
-function tryParseJson(text: string): unknown {
+function tryParseJson(text: string, data?: any): unknown {
   const trimmed = text.trim();
   try {
     return JSON.parse(trimmed);
   } catch {
-    // Try extracting the outer-most JSON object if Gemini added stray text.
-    const first = trimmed.indexOf('{');
-    const last = trimmed.lastIndexOf('}');
-    if (first >= 0 && last > first) {
-      const slice = trimmed.slice(first, last + 1);
-      return JSON.parse(slice);
+    // Remove markdown code blocks if present
+    const cleaned = trimmed.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+    try {
+      return JSON.parse(cleaned);
+    } catch {
+      // Try extracting the outer-most JSON object if Gemini added stray text.
+      const first = cleaned.indexOf('{');
+      const last = cleaned.lastIndexOf('}');
+      if (first >= 0 && last > first) {
+        const slice = cleaned.slice(first, last + 1);
+        try {
+          return JSON.parse(slice);
+        } catch {}
+      }
+      
+      const snippet = trimmed.slice(0, 200).replace(/\n/g, ' ');
+      const finishReason = data?.candidates?.[0]?.finishReason || 'UNKNOWN';
+      throw new Error(`Failed to parse JSON. FinishReason: ${finishReason}. Snippet: ${snippet}...`);
     }
-    throw new Error('Failed to parse Gemini JSON output.');
   }
 }
 
@@ -150,7 +166,7 @@ async function callGeminiStructured(args: {
       temperature: 0.2,
       responseMimeType: 'application/json',
       responseSchema,
-      maxOutputTokens: 3072,
+      maxOutputTokens: 32768,
     },
   };
 
@@ -173,7 +189,7 @@ async function callGeminiStructured(args: {
 
   // Gemini returns JSON as a string when responseMimeType is application/json
   // (still placed in the normal "text" field).
-  return tryParseJson(text);
+  return tryParseJson(text, data);
 }
 
 async function callGeminiFallback(args: {
@@ -197,7 +213,7 @@ async function callGeminiFallback(args: {
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: {
       temperature: 0.2,
-      maxOutputTokens: 4096,
+      maxOutputTokens: 32768,
     },
   };
 
@@ -217,7 +233,7 @@ async function callGeminiFallback(args: {
 
   const data = await res.json();
   const text = pickTextFromGeminiResponse(data);
-  return tryParseJson(text);
+  return tryParseJson(text, data);
 }
 
 function shouldFallbackToPlainJson(err: unknown): boolean {
@@ -277,7 +293,7 @@ Deno.serve(async (req) => {
     // Confirm ownership before doing any privileged writes.
     const { data: reportRow, error: repErr } = await adminClient
       .from('reports')
-      .select('id, user_id')
+      .select('id, user_id, parent_report_id')
       .eq('id', report_id)
       .single();
 
@@ -293,14 +309,55 @@ Deno.serve(async (req) => {
       return json({ error: 'No extracted text provided.' }, { status: 400 });
     }
 
+    // --- Helper to report progress to the frontend ---
+    const reportProgress = async (step: number, percent: number) => {
+      await adminClient
+        .from('reports')
+        .update({ error_message: JSON.stringify({ step, percent }) })
+        .eq('id', report_id);
+    };
+
+    await reportProgress(0, 10); // Start
+
     const clippedText = extracted.slice(0, 120_000);
 
+    // --- Pre-screening: Ensure it's a contract ---
+    await reportProgress(1, 20); // Validating document
+    const preScreenPrompt = [
+      'Determine if the following text is a legal contract, agreement, terms of service, privacy policy, or similar legal/compliance document.',
+      'Return exactly a JSON object: {"is_contract": boolean}. Do not include any other text.',
+      'Text snippet:',
+      clippedText.slice(0, 5000)
+    ].join('\n');
+
+    try {
+      const preScreenRaw = await callGeminiFallback({
+        apiKey: geminiApiKey,
+        model: 'gemini-2.5-flash',
+        systemPrompt: 'You are a document classifier.',
+        userPrompt: preScreenPrompt,
+      });
+      if (preScreenRaw && typeof (preScreenRaw as any).is_contract === 'boolean' && !(preScreenRaw as any).is_contract) {
+        throw new Error("This document does not appear to be a legal contract. Analysis aborted to save resources.");
+      }
+    } catch (err: any) {
+      if (err.message.includes("does not appear to be a legal contract")) {
+        throw err; // Re-throw the explicit abort
+      }
+      // If the pre-screening parsing fails for some reason, just proceed (fail-open)
+      console.warn("Pre-screening failed, proceeding anyway", err.message);
+    }
+
+    await reportProgress(2, 40); // Running compliance checks
     const relevantContext = retrieveRelevantSections(clippedText);
     const contextStr = relevantContext.map(s => `[${s.act} - ${s.section}: ${s.title}]\n${s.fullText}`).join('\n\n');
 
     const systemPrompt = [
-      'You are a legal compliance analyst specializing in Indian law.',
-      'Analyze the contract text and extract key clauses, then check each clause for compliance against Indian regulations.',
+      'You are an elite legal compliance analyst specializing in Indian law.',
+      'Analyze the contract text and extract up to 10 clauses. DO NOT extract standard, harmless boilerplate.',
+      'Focus strictly on high-leverage, material risks (e.g., unfair liability limitations, illegal data sharing) AND highly compliant "Safe" clauses (e.g., robust data protection, fair termination rights).',
+      'Make sure to include at least 2-3 "Safe" clauses if the contract has good practices, so the overall compliance score is balanced and accurate.',
+      'CRITICAL: For original_text, DO NOT extract the entire clause. Provide only a short 1-2 sentence excerpt that captures the core meaning, ending with "...".',
       'Risk levels MUST be exactly one of: Safe | Risky | Non-compliant.',
       'Always cite specific sections where possible (e.g., "Section 7(1) of DPDP Act 2023").',
       '',
@@ -346,6 +403,7 @@ Deno.serve(async (req) => {
       throw new Error('Gemini returned zero clauses.');
     }
 
+    await reportProgress(3, 75); // Scoring risk levels
     // Clean slate in case the function is re-run for the same report.
     await adminClient.from('clauses').delete().eq('report_id', report_id);
 
@@ -394,6 +452,7 @@ Deno.serve(async (req) => {
     const score = scoreFromClauses(clauses);
     const overall_risk = overallRiskFromScore(score);
 
+    await reportProgress(4, 90); // Building report
     const { error: clausesErr } = await adminClient.from('clauses').insert(clauseRows);
     if (clausesErr) throw new Error(`Insert clauses failed: ${clausesErr.message}`);
 
@@ -421,6 +480,11 @@ Deno.serve(async (req) => {
       .eq('id', report_id);
 
     if (repUpdateErr) throw new Error(`Update report failed: ${repUpdateErr.message}`);
+
+    // Finally, if this is a root report (not a versioned retry) and it succeeded, charge the user a credit
+    if (!reportRow.parent_report_id) {
+      await adminClient.rpc('increment_uploads_used', { user_id_input: userData.user.id });
+    }
 
     return json({ ok: true, report_id, compliance_score: score, overall_risk });
   } catch (err) {

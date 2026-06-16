@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 import {
   Upload, FileText, AlertTriangle, CheckCircle, Clock,
-  TrendingUp, ChevronRight, Plus, Search, Loader2, MoreVertical, Trash2,
+  TrendingUp, ChevronRight, Plus, Search, Loader2, MoreVertical, Trash2, XCircle, RefreshCw,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
@@ -30,6 +30,10 @@ function ReportCard({ report, onDelete }: { report: DBReport; onDelete: (id: str
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  const isFailed     = report.status === 'failed';
+  const isProcessing = report.status === 'processing' || report.status === 'pending';
+  const isCompleted  = report.status === 'completed';
+
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setMenuOpen(false);
@@ -46,28 +50,61 @@ function ReportCard({ report, onDelete }: { report: DBReport; onDelete: (id: str
     }
   };
 
+  const StatusBadge = () => {
+    if (isFailed) return (
+      <span className="text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full border text-red-400 bg-red-500/10 border-red-500/20 flex items-center gap-1">
+        <XCircle size={10} /> Failed
+      </span>
+    );
+    if (isProcessing) return (
+      <span className="text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full border text-amber-400 bg-amber-500/10 border-amber-500/20 flex items-center gap-1">
+        <Loader2 size={10} className="animate-spin" /> Processing
+      </span>
+    );
+    return (
+      <span className={cn('text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full border', RISK_COLORS[report.overall_risk])}>
+        <span className={cn('inline-block w-1.5 h-1.5 rounded-full mr-1', RISK_DOT[report.overall_risk])} />
+        {report.overall_risk} Risk
+      </span>
+    );
+  };
+
   return (
     <div
-      onClick={() => { if (!menuOpen) navigate(`/result/${report.id}`); }}
-      className="group relative bg-[#0B0B0E] border border-white/[0.06] hover:border-white/[0.12] rounded-2xl p-6 cursor-pointer transition-all hover:bg-[#0f0f12]"
+      onClick={() => {
+        if (menuOpen || isFailed || isProcessing) return;
+        navigate(`/result/${report.id}`);
+      }}
+      className={cn(
+        'group relative border rounded-2xl p-6 transition-all',
+        isFailed
+          ? 'bg-red-950/10 border-red-500/10 opacity-80 cursor-default'
+          : isProcessing
+          ? 'bg-amber-950/10 border-amber-500/10 cursor-default'
+          : 'bg-[#0B0B0E] border-white/[0.06] hover:border-white/[0.12] cursor-pointer hover:bg-[#0f0f12]'
+      )}
     >
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-            <FileText size={18} className="text-slate-400" />
+          <div className={cn(
+            'w-10 h-10 rounded-xl flex items-center justify-center shrink-0',
+            isFailed ? 'bg-red-500/10' : isProcessing ? 'bg-amber-500/10' : 'bg-white/5'
+          )}>
+            {isFailed
+              ? <XCircle size={18} className="text-red-400" />
+              : isProcessing
+              ? <Loader2 size={18} className="text-amber-400 animate-spin" />
+              : <FileText size={18} className="text-slate-400" />}
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-white truncate">{report.file_name}</p>
             <p className="text-xs text-slate-500 mt-0.5">
-              {report.contract_type} · {report.created_at?.slice(0, 10)}
+              {report.contract_type || (isFailed ? 'Analysis failed' : 'Processing...')} · {report.created_at?.slice(0, 10)}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className={cn('text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full border', RISK_COLORS[report.overall_risk])}>
-            <span className={cn('inline-block w-1.5 h-1.5 rounded-full mr-1', RISK_DOT[report.overall_risk])} />
-            {report.overall_risk} Risk
-          </span>
+          <StatusBadge />
 
           {/* 3-dot menu */}
           <div className="relative" onClick={e => e.stopPropagation()}>
@@ -83,6 +120,14 @@ function ReportCard({ report, onDelete }: { report: DBReport; onDelete: (id: str
                 {/* Click-away backdrop */}
                 <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
                 <div className="absolute right-0 top-full mt-1 w-40 bg-[#111115] border border-white/[0.1] rounded-xl shadow-2xl overflow-hidden z-20">
+                  {isFailed && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setMenuOpen(false); navigate('/upload'); }}
+                      className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-blue-400 hover:bg-blue-500/10 transition-colors cursor-pointer"
+                    >
+                      <RefreshCw size={14} /> Try Again
+                    </button>
+                  )}
                   <button
                     onClick={handleDelete}
                     disabled={deleting}
@@ -98,27 +143,39 @@ function ReportCard({ report, onDelete }: { report: DBReport; onDelete: (id: str
         </div>
       </div>
 
-      <p className="text-xs text-slate-500 mb-4 truncate">Parties: {report.parties}</p>
+      {/* Error message for failed reports */}
+      {isFailed && (
+        <p className="text-xs text-red-400/80 mb-3 bg-red-500/5 rounded-lg px-3 py-2 border border-red-500/10">
+          Analysis could not be completed. Please try uploading the document again.
+        </p>
+      )}
 
-      <div className="flex items-center gap-3">
-        {/* Compliance score bar */}
-        <div className="flex-1">
-          <div className="flex items-center justify-between text-[10px] text-slate-600 mb-1">
-            <span>Compliance</span>
-            <span>{score}%</span>
+      {!isFailed && (
+        <>
+          <p className="text-xs text-slate-500 mb-4 truncate">Parties: {report.parties || '—'}</p>
+          <div className="flex items-center gap-3">
+            {/* Compliance score bar */}
+            <div className="flex-1">
+              <div className="flex items-center justify-between text-[10px] text-slate-600 mb-1">
+                <span>Compliance</span>
+                <span>{isProcessing ? '—' : `${score}%`}</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                {!isProcessing && (
+                  <div
+                    className={cn(
+                      'h-full rounded-full',
+                      score >= 70 ? 'bg-emerald-500' : score >= 40 ? 'bg-amber-500' : 'bg-red-500'
+                    )}
+                    style={{ width: `${score}%` }}
+                  />
+                )}
+              </div>
+            </div>
+            {isCompleted && <ChevronRight size={14} className="text-slate-600 group-hover:text-slate-400 transition-colors shrink-0" />}
           </div>
-          <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
-            <div
-              className={cn(
-                'h-full rounded-full',
-                score >= 70 ? 'bg-emerald-500' : score >= 40 ? 'bg-amber-500' : 'bg-red-500'
-              )}
-              style={{ width: `${score}%` }}
-            />
-          </div>
-        </div>
-        <ChevronRight size={14} className="text-slate-600 group-hover:text-slate-400 transition-colors shrink-0" />
-      </div>
+        </>
+      )}
     </div>
   );
 }
@@ -128,7 +185,8 @@ export function DashboardPage() {
   const navigate = useTopNavigate();
   const location = useLocation();
   const [reports, setReports] = useState<DBReport[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);   // true only on FIRST load
+  const [refreshing, setRefreshing] = useState(false); // silent background refresh
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = React.useState('');
 
@@ -139,16 +197,25 @@ export function DashboardPage() {
   const usedPct = user ? Math.min(100, Math.round((usedCount / user.uploadsLimit) * 100)) : 0;
 
   useEffect(() => {
-    if (!user) return; // Wait until authentication completes
-    setLoading(true);
+    if (!user) return;
+    // First load: show spinner. Subsequent navigations: keep old data visible and refresh silently.
+    const isFirstLoad = reports.length === 0;
+    if (isFirstLoad) setLoading(true);
+    else setRefreshing(true);
     setErrorMsg(null);
     apiGetReports()
-      .then(res => { setReports(res.reports); setLoading(false); })
-      .catch((err) => { 
-         setErrorMsg(err instanceof Error ? err.message : String(err)); 
-         setLoading(false); 
+      .then(res => {
+        setReports(res.reports);
+        setLoading(false);
+        setRefreshing(false);
+      })
+      .catch((err) => {
+        setErrorMsg(err instanceof Error ? err.message : String(err));
+        setLoading(false);
+        setRefreshing(false);
       });
-  }, [user, location.key]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const filteredReports = reports.filter(r =>
     r.file_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -169,10 +236,10 @@ export function DashboardPage() {
   const turnaroundStr = avgTurnaroundSecs > 0 ? `~${avgTurnaroundSecs}s` : '0s';
 
   const stats = [
-    { label: 'Reports Generated',  value: loading ? '…' : reports.length, icon: FileText,       color: 'text-blue-400',    bg: 'bg-blue-500/10'    },
-    { label: 'High Risk Found',    value: loading ? '…' : highRiskCount,   icon: AlertTriangle,  color: 'text-red-400',     bg: 'bg-red-500/10'     },
-    { label: 'Avg. Compliance',    value: loading ? '…' : `${avgCompliance}%`, icon: CheckCircle,    color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-    { label: 'Avg. Turnaround',    value: loading ? '…' : turnaroundStr,                           icon: Clock,          color: 'text-amber-400',   bg: 'bg-amber-500/10'   },
+    { label: 'Reports Generated',  value: loading ? '…' : reports.length,        icon: FileText,      color: 'text-blue-400',    bg: 'bg-blue-500/10'    },
+    { label: 'High Risk Found',    value: loading ? '…' : highRiskCount,          icon: AlertTriangle, color: 'text-red-400',     bg: 'bg-red-500/10'     },
+    { label: 'Avg. Compliance',    value: loading ? '…' : `${avgCompliance}%`,    icon: CheckCircle,   color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+    { label: 'Avg. Turnaround',    value: loading ? '…' : turnaroundStr,          icon: Clock,         color: 'text-amber-400',   bg: 'bg-amber-500/10'   },
   ];
 
   return (
@@ -183,6 +250,13 @@ export function DashboardPage() {
         transition={{ duration: 0.4 }}
         className="max-w-[1200px] mx-auto px-4 sm:px-6 py-10"
       >
+        {/* Silent refresh indicator */}
+        {refreshing && (
+          <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-[#111115] border border-white/10 rounded-full px-3 py-1.5 text-xs text-slate-400 shadow-xl">
+            <Loader2 size={12} className="animate-spin" />
+            Refreshing...
+          </div>
+        )}
 
         {/* Welcome Banner */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">

@@ -33,6 +33,7 @@ function mapApiToReport(data: ReportResponse): Report {
     type: data.report.contract_type,
     parties: data.report.parties,
     overallRisk: data.report.overall_risk,
+    complianceScore: data.report.compliance_score,
     date: data.report.created_at?.slice(0, 10) || '',
     status: data.report.status,
     clauses: data.clauses.map(c => ({
@@ -317,7 +318,7 @@ export function ResultPage() {
   const risky = report.clauses.filter(c => c.riskLevel === 'Risky').length;
   const bad = report.clauses.filter(c => c.riskLevel === 'Non-compliant').length;
   const total = report.clauses.length;
-  const score = Math.max(0, Math.round(100 - (bad * 25) - (risky * 10)));
+  const score = report.complianceScore;
   const ocfg = OVERALL_CONFIG[report.overallRisk] || OVERALL_CONFIG.Medium;
 
   const filteredClauses = activeFilter === 'all'

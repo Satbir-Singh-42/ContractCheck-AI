@@ -201,5 +201,132 @@ export const legalKnowledgeBase: LegalSection[] = [
     summary: 'Manufacturers are liable for harm caused by defective products.',
     keywords: ['product liability', 'manufacturer', 'defect', 'harm', 'injury', 'compensation', 'design defect', 'manufacturing defect', 'warning'],
     fullText: 'A product manufacturer shall be liable in a product liability action, if— (a) the product contains a manufacturing defect; or (b) the product is defective in design; or (c) there is a deviation from manufacturing specifications; or (d) the product does not conform to the express warranty; or (e) the product fails to contain adequate instructions of correct usage to prevent any harm or any warning regarding improper or incorrect usage.'
+  },
+
+  // ==========================================
+  // 9. Payment and Settlement Systems Act 2007
+  // ==========================================
+  {
+    id: 'pssa-sec-18',
+    act: 'Payment and Settlement Systems Act 2007',
+    section: 'Section 18',
+    title: 'RBI Powers to Issue Directions to Payment Systems',
+    summary: 'RBI can issue directions to payment system operators and participants regarding system safety, security, and consumer protection.',
+    keywords: ['payment gateway', 'payment aggregator', 'RBI', 'settlement', 'merchant', 'transaction', 'digital payment', 'prepaid', 'directions'],
+    fullText: 'The Reserve Bank may, if it is satisfied that it is in the interest of the monetary policy of India or in the public interest, or it is necessary so to do, by directions in writing, require payment system operators and system participants to comply with such requirements as it deems fit. This includes requirements relating to security of payment systems, customer protection, and fair practices.'
+  },
+  {
+    id: 'rbi-pa-2020',
+    act: 'RBI Payment Aggregator Guidelines 2020',
+    section: 'Circular March 2020',
+    title: 'Payment Aggregator & Gateway Regulations',
+    summary: 'RBI mandates that payment aggregators must be authorized by RBI, hold merchant funds in escrow, and not use merchant funds for their own purposes.',
+    keywords: ['payment aggregator', 'payment gateway', 'merchant', 'escrow', 'settlement', 'razorpay', 'charge', 'fee', 'refund', 'chargeback', 'nodal account'],
+    fullText: 'RBI guidelines for Payment Aggregators (PAs) and Payment Gateways (PGs): PAs must obtain authorization from RBI. Merchant funds must be kept in escrow accounts and not co-mingled with PA own funds. PAs must ensure timely settlement to merchants (T+1 or T+3 as applicable). Customer data must not be stored beyond permitted scope. Chargebacks must be handled as per scheme rules. PAs cannot impose unfair conditions on merchants.'
+  },
+  {
+    id: 'rbi-md-on-ppi',
+    act: 'RBI Master Direction on Prepaid Payment Instruments 2021',
+    section: 'Para 9 & 12',
+    title: 'KYC and Data Protection for Prepaid Payments',
+    summary: 'Issuers of prepaid instruments must conduct KYC and protect customer data; cannot share data with third parties without consent.',
+    keywords: ['prepaid', 'wallet', 'KYC', 'know your customer', 'AML', 'data sharing', 'third party', 'payment instrument', 'customer data'],
+    fullText: 'PPI issuers must carry out KYC of customers as per RBI/PMLA guidelines. Customer data collected during PPI issuance shall be used only for purposes permitted under the Master Direction or with customer consent. Sharing of customer data with third parties for commercial purposes is not permitted without explicit customer consent. Adequate grievance redress mechanism must be provided.'
+  },
+
+  // ==========================================
+  // 10. TRAI Regulations (DND / Telemarketing)
+  // ==========================================
+  {
+    id: 'trai-dnd-2018',
+    act: 'TRAI Telecom Commercial Communications Customer Preference Regulations 2018',
+    section: 'Regulation 3 & 6',
+    title: 'Do Not Disturb (DND) & Consent for Commercial Communications',
+    summary: 'Any commercial marketing communication (SMS, call, WhatsApp) requires prior written consent. DND-registered numbers cannot be called for marketing.',
+    keywords: ['DND', 'do not disturb', 'marketing', 'SMS', 'promotional', 'commercial communication', 'telemarketing', 'consent', 'NCPR', 'unsolicited', 'opt-out', 'opt-in'],
+    fullText: 'Under TRAI TCCCPR 2018, no telemarketer shall send any commercial communication to a subscriber registered on the National Customer Preference Register (NCPR/DND). Prior consent of the subscriber is mandatory before sending any commercial communication. The consent must be specific, informed, and documented. Subscribers have the right to revoke consent at any time. Any clause in a service agreement that forces users to waive DND protection is considered contrary to TRAI regulations and is legally unenforceable.'
+  },
+
+  // ==========================================
+  // 11. Competition Act 2002
+  // ==========================================
+  {
+    id: 'ca-sec-4',
+    act: 'Competition Act 2002',
+    section: 'Section 4',
+    title: 'Abuse of Dominant Position',
+    summary: 'Enterprises in a dominant position must not impose unfair or discriminatory conditions, limit supply, or deny market access.',
+    keywords: ['dominant position', 'unfair', 'discriminatory', 'monopoly', 'abuse', 'market', 'anti-competitive', 'exclusive dealing', 'restriction', 'terms'],
+    fullText: 'No enterprise or group shall abuse its dominant position. Abuse shall be said to occur when an enterprise imposes unfair or discriminatory conditions in purchase or sale of goods or services; imposes unfair or discriminatory price in purchase or sale of goods or services; limits or restricts production of goods or provision of services; limits or restricts technical or scientific development; denies market access; or uses dominant position in one market to enter into, or protect, another relevant market.'
+  },
+
+  // ==========================================
+  // 12. Specific Relief Act 1963 (amended 2018)
+  // ==========================================
+  {
+    id: 'sra-sec-14',
+    act: 'Specific Relief Act 1963',
+    section: 'Section 14 & 41',
+    title: 'Contracts Not Specifically Enforceable / Injunctions',
+    summary: 'Contracts requiring continuous supervision or personal service cannot be specifically enforced. Courts can grant injunctions to restrain breach.',
+    keywords: ['specific performance', 'injunction', 'termination', 'breach', 'enforcement', 'damages', 'contract', 'relief'],
+    fullText: 'Section 14: The following contracts cannot be specifically enforced: a contract for the non-performance of which compensation in money is an adequate relief; a contract which runs into such minute or numerous details, or which is so dependent on the personal qualifications or volition of the parties. Section 41: An injunction cannot be granted to restrain a person from instituting or prosecuting any proceeding in a court of competent jurisdiction.'
+  },
+
+  // ==========================================
+  // 13. DPDP Act 2023 - Additional Sections
+  // ==========================================
+  {
+    id: 'dpdp-sec-9',
+    act: 'DPDP Act 2023',
+    section: 'Section 9',
+    title: 'Processing of Children\'s Personal Data',
+    summary: 'Processing personal data of children requires verifiable consent of parent/guardian. Behavioural monitoring or targeted advertising to children is prohibited.',
+    keywords: ['children', 'minor', 'child data', 'parental consent', 'guardian', 'age verification', 'targeted advertising', 'tracking', 'data principal'],
+    fullText: 'A Data Fiduciary shall, before processing any personal data of a child, obtain verifiable consent of the parent or the lawful guardian of such child. No Data Fiduciary shall undertake processing of personal data that is likely to cause any detrimental effect on the well-being of a child and shall not undertake tracking or behavioural monitoring of children or targeted advertising directed at children.'
+  },
+  {
+    id: 'dpdp-sec-16',
+    act: 'DPDP Act 2023',
+    section: 'Section 16',
+    title: 'Exemptions from DPDP provisions',
+    summary: 'Certain data processing activities by the State for national security or research purposes may be exempted from DPDP provisions.',
+    keywords: ['exemption', 'state', 'national security', 'research', 'statistical', 'journalistic', 'legal proceedings', 'public interest'],
+    fullText: 'The Central Government may, by notification, exempt processing of personal data by instrumentalities of the State in the interests of sovereignty and integrity of India, security of the State, friendly relations with foreign States, maintenance of public order, or preventing incitement to commission of any cognisable offence. Research, archiving, or statistical purposes may also be exempted if carried out with safeguards.'
+  },
+
+  // ==========================================
+  // 14. IT Act 2000 - Additional Sections
+  // ==========================================
+  {
+    id: 'ita-sec-72a',
+    act: 'IT Act 2000',
+    section: 'Section 72A',
+    title: 'Punishment for Disclosure of Information in Breach of Lawful Contract',
+    summary: 'Disclosure of personal information without consent in breach of a lawful contract is punishable with imprisonment and/or fine.',
+    keywords: ['disclosure', 'personal information', 'confidentiality', 'breach of contract', 'data sharing', 'third party', 'punishment', 'imprisonment'],
+    fullText: 'Any person including an intermediary who, while providing services under the terms of lawful contract, has secured access to any material containing personal information about another person, with the intent to cause or knowing that he is likely to cause wrongful loss or wrongful gain discloses, without the consent of the person concerned, or in breach of a lawful contract, such material to any other person shall be punished with imprisonment for a term which may extend to three years, or with a fine which may extend to five lakh rupees, or with both.'
+  },
+
+  // ==========================================
+  // 15. Indian Contract Act - Additional Sections
+  // ==========================================
+  {
+    id: 'ica-sec-74',
+    act: 'Indian Contract Act 1872',
+    section: 'Section 74',
+    title: 'Compensation for breach when penalty stipulated',
+    summary: 'If a sum is named in the contract as the amount to be paid for a breach, the aggrieved party can receive reasonable compensation not exceeding that amount.',
+    keywords: ['penalty', 'liquidated damages', 'breach', 'compensation', 'stipulated', 'sum', 'reasonable'],
+    fullText: 'When a contract has been broken, if a sum is named in the contract as the amount to be paid in case of such breach, or if the contract contains any other stipulation by way of penalty, the party complaining of the breach is entitled, whether or not actual damage or loss is proved to have been caused thereby, to receive from the party who has broken the contract reasonable compensation not exceeding the amount so named or, as the case may be, the penalty stipulated for. Explanation: A stipulation for increased interest from the date of default may be a stipulation by way of penalty.'
+  },
+  {
+    id: 'ica-sec-28',
+    act: 'Indian Contract Act 1872',
+    section: 'Section 28',
+    title: 'Agreements in restraint of legal proceedings void',
+    summary: 'Any clause that restricts a party from enforcing legal rights or limits the time for legal action is void.',
+    keywords: ['legal proceedings', 'limitation', 'void', 'arbitration exclusive', 'jurisdiction', 'legal rights', 'restriction', 'court', 'dispute', 'exclusive jurisdiction'],
+    fullText: 'Every agreement— (a) by which any party thereto is restricted absolutely from enforcing his rights under or in respect of any contract, by the usual legal proceedings in the ordinary tribunals, or which limits the time within which he may thus enforce his rights; or (b) which extinguishes the rights of any party thereto, or discharges any party thereto from any liability, under or in respect of any contract on the expiry of a specified period so as to restrict any party from enforcing his rights, is void to that extent.'
   }
 ];

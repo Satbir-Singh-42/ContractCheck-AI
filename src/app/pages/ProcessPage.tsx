@@ -8,12 +8,11 @@ import { apiGetAnalysisStatus } from '../../lib/api';
 import { useTopNavigate } from '../hooks/useTopNavigate';
 
 const STEPS = [
-  'Extracting text from document',
-  'Detecting contract clauses',
-  'Running compliance checks (DPDP, GST, Labour)',
-  'Scoring risk levels per clause',
-  'Generating AI fix suggestions',
-  'Building your report',
+  'Extracting text from document', // Step 0
+  'Validating document', // Step 1
+  'Running compliance checks', // Step 2
+  'Scoring risk levels', // Step 3
+  'Building your report', // Step 4
 ];
 
 type AnalysisStatus = 'polling' | 'completed' | 'failed';
@@ -34,14 +33,6 @@ export function ProcessPage() {
     let stepTimer: ReturnType<typeof setTimeout>;
     let pollTimer: ReturnType<typeof setTimeout>;
 
-    // Animate visual steps (UX layer — runs independently of API timing)
-    const animateStep = (step: number) => {
-      if (cancelled || step > STEPS.length) return;
-      setVisibleStep(step);
-      stepTimer = setTimeout(() => animateStep(step + 1), 1400);
-    };
-    animateStep(0);
-
     // Real API polling loop
     const poll = async () => {
       if (cancelled) return;
@@ -50,9 +41,14 @@ export function ProcessPage() {
         if (cancelled) return;
 
         setProgress(res.progress_percent);
+        
+        // Sync visual step to backend reported step
+        const backendStep = parseInt(res.current_step, 10);
+        if (!isNaN(backendStep) && backendStep >= 0) {
+          setVisibleStep(backendStep);
+        }
 
         if (res.status === 'completed') {
-          clearTimeout(stepTimer);
           setVisibleStep(STEPS.length);
           setProgress(100);
           setStatus('completed');
@@ -60,12 +56,11 @@ export function ProcessPage() {
             if (!cancelled) navigate(`/result/${id}`);
           }, 900);
         } else if (res.status === 'failed') {
-          clearTimeout(stepTimer);
           setStatus('failed');
           setErrorMsg(res.error_message);
         } else {
-          // Still processing — re-poll in 2s
-          pollTimer = setTimeout(poll, 2000);
+          // Still processing — re-poll frequently (1.5s) for smooth updates
+          pollTimer = setTimeout(poll, 1500);
         }
       } catch {
         // Network hiccup — retry in 3s
@@ -78,17 +73,14 @@ export function ProcessPage() {
 
     return () => {
       cancelled = true;
-      clearTimeout(stepTimer);
       clearTimeout(pollTimer);
     };
   }, [id, navigate]);
 
   const isDone = status === 'completed';
   const isFailed = status === 'failed';
-  // Show the higher of API progress vs visual-step progress for a smooth bar
-  const displayProgress = isDone
-    ? 100
-    : Math.max(progress, Math.round((visibleStep / STEPS.length) * 100));
+  // The backend drives progress percent directly now
+  const displayProgress = isDone ? 100 : progress;
 
   return (
     <AppLayout>
