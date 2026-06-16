@@ -309,27 +309,32 @@ export async function apiGetSharedReport(reportId: string): Promise<ReportRespon
   };
 }
 
-// ─── Payments ─────────────────────────────────────────────────────────────────
-// Payments should ideally map to an Edge Function because the frontend cannot safely
-// initialize a Razorpay order natively without leaking secret keys.
-// For now, this is wired mock-style until Edge Functions are deployed.
 
-export async function apiCreatePaymentOrder(plan: 'pro' | 'enterprise'): Promise<PaymentCreateResponse> {
-  // To complete 100%, this must fetch from Supabase edge function:
-  // await supabase.functions.invoke('create-razorpay-order', { body: { plan } })
-  return {
-    razorpay_order_id: 'order_' + Date.now(),
-    amount_inr: plan === 'pro' ? 99900 : 499900,
-    currency: 'INR',
-    key_id: 'rzp_test_YOUR_KEY_HERE',
-  };
+
+// ─── Payments ─────────────────────────────────────────────────────────────────
+
+export async function apiCreatePaymentOrder(plan: 'pro_monthly' | 'pro_annual'): Promise<PaymentCreateResponse> {
+  const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
+    body: { plan }
+  });
+  if (error) throw new Error(error.message);
+  return data;
 }
 
 export async function apiVerifyPayment(
   razorpayOrderId: string,
   razorpayPaymentId: string,
-  razorpaySignature: string
+  razorpaySignature: string,
+  plan: 'pro_monthly' | 'pro_annual'
 ): Promise<{ success: boolean }> {
-  // Edge Function: await supabase.functions.invoke('verify-razorpay-payment', ... )
-  return { success: true };
+  const { data, error } = await supabase.functions.invoke('verify-razorpay-payment', {
+    body: { 
+      razorpay_order_id: razorpayOrderId,
+      razorpay_payment_id: razorpayPaymentId,
+      razorpay_signature: razorpaySignature,
+      plan
+    }
+  });
+  if (error) throw new Error(error.message);
+  return data;
 }

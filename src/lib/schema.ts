@@ -175,3 +175,9 @@ export type SupportedRegulation =
   | 'Arbitration Act 1996'
   | 'IT Act 2000'
   | 'Labour Codes 2020';
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}

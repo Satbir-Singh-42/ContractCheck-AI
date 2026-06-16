@@ -1,6 +1,7 @@
 /// <reference lib="deno.ns" />
 
 import { createClient } from 'npm:@supabase/supabase-js@2.103.1';
+import { retrieveRelevantSections } from './retriever.ts';
 
 type RiskLevel = 'Safe' | 'Risky' | 'Non-compliant';
 
@@ -245,7 +246,7 @@ Deno.serve(async (req) => {
   const supabaseServiceRoleKey =
     Deno.env.get('SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-  const geminiModel = normalizeModelId(Deno.env.get('GEMINI_MODEL')) ?? 'gemini-1.5-flash';
+  const geminiModel = normalizeModelId(Deno.env.get('GEMINI_MODEL')) ?? 'gemini-2.5-flash';
   const foundationDocs = Deno.env.get('FOUNDATION_DOCS') ?? '';
 
   if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceRoleKey) {
@@ -294,11 +295,18 @@ Deno.serve(async (req) => {
 
     const clippedText = extracted.slice(0, 120_000);
 
+    const relevantContext = retrieveRelevantSections(clippedText);
+    const contextStr = relevantContext.map(s => `[${s.act} - ${s.section}: ${s.title}]\n${s.fullText}`).join('\n\n');
+
     const systemPrompt = [
       'You are a legal compliance analyst specializing in Indian law.',
       'Analyze the contract text and extract key clauses, then check each clause for compliance against Indian regulations.',
       'Risk levels MUST be exactly one of: Safe | Risky | Non-compliant.',
       'Always cite specific sections where possible (e.g., "Section 7(1) of DPDP Act 2023").',
+      '',
+      '--- RELEVANT LEGAL PROVISIONS FOR THIS CONTRACT ---',
+      contextStr || 'No specific laws found, use general Indian law knowledge.',
+      '--------------------------------------------------',
       '',
       foundationDocs ? `Reference materials:\n${foundationDocs}` : '',
     ]
