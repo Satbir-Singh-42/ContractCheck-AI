@@ -261,8 +261,8 @@ Deno.serve(async (req) => {
   // Use SERVICE_ROLE_KEY as the recommended secret name.
   const supabaseServiceRoleKey =
     Deno.env.get('SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-  const geminiModel = normalizeModelId(Deno.env.get('GEMINI_MODEL')) ?? 'gemini-2.5-flash';
+  const geminiApiKey = Deno.env.get('GEMINI_API_KEY') ?? '';
+  // The default model is handled in the fallback loop below
   const foundationDocs = Deno.env.get('FOUNDATION_DOCS') ?? '';
 
   if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceRoleKey) {
@@ -378,22 +378,54 @@ Deno.serve(async (req) => {
       clippedText,
     ].join('\n');
 
+    const fallbackModels = [
+      normalizeModelId(Deno.env.get('GEMINI_MODEL')),
+      'gemini-3.1-pro',
+      'gemini-3.5-flash',
+      'gemini-3-pro',
+      'gemini-2.5-pro',
+      'gemini-2.5-flash',
+      'gemini-2.0-flash'
+    ].filter(Boolean) as string[];
+
+    // Remove duplicates to form the final prioritized list
+    const modelsToTry = [...new Set(fallbackModels)];
+
     let raw: unknown;
-    try {
-      raw = await callGeminiStructured({
-        apiKey: geminiApiKey,
-        model: geminiModel,
-        systemPrompt,
-        userPrompt,
-      });
-    } catch (err) {
-      if (!shouldFallbackToPlainJson(err)) throw err;
-      raw = await callGeminiFallback({
-        apiKey: geminiApiKey,
-        model: geminiModel,
-        systemPrompt,
-        userPrompt,
-      });
+    let lastError: unknown;
+
+    for (const model of modelsToTry) {
+      try {
+        console.log(`Attempting analysis with model: ${model}`);
+        try {
+          raw = await callGeminiStructured({
+            apiKey: geminiApiKey,
+            model,
+            systemPrompt,
+            userPrompt,
+          });
+        } catch (err) {
+          if (!shouldFallbackToPlainJson(err)) throw err;
+          raw = await callGeminiFallback({
+            apiKey: geminiApiKey,
+            model,
+            systemPrompt,
+            userPrompt,
+          });
+        }
+        // If we got here, it succeeded!
+        lastError = null;
+        break;
+      } catch (err) {
+        lastError = err;
+        console.warn(`Model ${model} failed:`, err instanceof Error ? err.message : String(err));
+        // Silently continue to the next model in the list
+      }
+    }
+
+    if (lastError) {
+      // If ALL models in the list failed, throw the last error
+      throw lastError;
     }
 
     const payload = raw as GeminiPayload;

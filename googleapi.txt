@@ -1,0 +1,382 @@
+Filter
+Name
+Type
+Dimensions (e.g. location)
+Value
+Current usage percentage
+Current usage
+Adjustable 
+Request limit per model per day for a project in the free tier	Quota	model : gemini-2.5-flash	20		
+40%
+8	Yes		
+Request limit per model per minute for a project in the free tier	Quota	model : gemini-2.5-flash	5		
+20%
+1	Yes		
+GenerateContent free tier input token count limit per model per minute	Quota	model : gemini-2.5-flash	250,000		
+0.93%
+2,313.5	Yes		
+GenerateContent free tier input token count limit per model per day	Quota	model : gemini-2.5-flash	Unlimited		-	191,372	Yes		
+GenerateContent request limit per minute for a region	Quota	region : asia-southeast1	Unlimited		-	2	Yes		
+Request limit per minute for a region	Quota	region : asia-southeast1	Unlimited		-	2	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : africa-south1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : asia-east1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : asia-east2	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : asia-northeast1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : asia-northeast2	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : asia-northeast3	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : asia-south1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : asia-south2	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : asia-southeast1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : asia-southeast2	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : asia-southeast3	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : australia-southeast1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : australia-southeast2	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : europe-central2	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : europe-north1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : europe-north2	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : europe-southwest1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : europe-west1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : europe-west10	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : europe-west12	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : europe-west2	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : europe-west3	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : europe-west4	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : europe-west6	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : europe-west8	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : europe-west9	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : me-central1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : me-central2	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : me-west1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : northamerica-northeast1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : northamerica-northeast2	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : northamerica-south1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : southamerica-east1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : southamerica-west1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : us-central1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : us-east1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : us-east4	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : us-east5	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : us-south1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : us-west1	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : us-west2	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : us-west3	Unlimited		-	0	Yes		
+Batch embed contents request limit per minute for a region	Quota	region : us-west4	Unlimited		-	0	Yes		
+BidiGenerateContent active sessions for a project in the paid tier 3	Quota		Unlimited		-	0	Yes		
+Create file request limit per minute	Quota		3,000		
+0%
+0	Yes		
+Create FileSearchStore request limit per minute	Quota		60		
+0%
+0	Yes		
+CreateVoice free tier request limit per day	Quota		10		
+0%
+0	Yes		
+CreateVoice free tier request limit per minute	Quota		5		
+0%
+0	Yes		
+CreateVoice request limit per day for paid tier 1	Quota		100		
+0%
+0	Yes		
+CreateVoice request limit per day for paid tier 2	Quota		1,000		
+0%
+0	Yes		
+CreateVoice request limit per day for paid tier 3	Quota		10,000		
+0%
+0	Yes		
+CreateVoice request limit per minute for paid tier 1	Quota		10		
+0%
+0	Yes		
+CreateVoice request limit per minute for paid tier 2	Quota		100		
+0%
+0	Yes		
+CreateVoice request limit per minute for paid tier 3	Quota		1,000		
+0%
+0	Yes		
+Embed content request count per day for a model in the free tier	Quota	model : gemini-embedding-1.0	1,000		
+0%
+0	Yes		
+Embed content request count per day for a model in the free tier	Quota	model : gemini-embedding-2	1,000		
+0%
+0	Yes		
+Embed content request count per day for a model in the free tier	Quota	model : gemini-embedding-2-exp	1,000		
+0%
+0	Yes		
+Embed content request count per day for a model in the paid tier 1	Quota	model : embedding-001	Unlimited		-	0	Yes		
+Embed content request count per day for a model in the paid tier 1	Quota	model : gemini-embedding-1.0	Unlimited		-	0	Yes		
+Embed content request count per day for a model in the paid tier 1	Quota	model : gemini-embedding-2	Unlimited		-	0	Yes		
+Embed content request count per day for a model in the paid tier 1	Quota	model : gemini-embedding-2-exp	Unlimited		-	0	Yes		
+Embed content request count per day for a model in the paid tier 1	Quota	model : text-embedding-004	125,000		
+0%
+0	Yes		
+Embed content request count per day for a model in the paid tier 2	Quota	model : embedding-001	Unlimited		-	0	Yes		
+Embed content request count per day for a model in the paid tier 2	Quota	model : gemini-embedding-1.0	Unlimited		-	0	Yes		
+Embed content request count per day for a model in the paid tier 2	Quota	model : gemini-embedding-2	Unlimited		-	0	Yes		
+Embed content request count per day for a model in the paid tier 2	Quota	model : gemini-embedding-2-exp	Unlimited		-	0	Yes		
+Embed content request count per day for a model in the paid tier 2	Quota	model : text-embedding-004	125,000		
+0%
+0	Yes		
+Embed content request count per day for a model in the paid tier 3	Quota	model : embedding-001	Unlimited		-	0	Yes		
+Embed content request count per day for a model in the paid tier 3	Quota	model : gemini-embedding-1.0	Unlimited		-	0	Yes		
+Embed content request count per day for a model in the paid tier 3	Quota	model : gemini-embedding-2	Unlimited		-	0	Yes		
+Embed content request count per day for a model in the paid tier 3	Quota	model : gemini-embedding-2-exp	Unlimited		-	0	Yes		
+Embed content request count per day for a model in the paid tier 3	Quota	model : text-embedding-004	125,000		
+0%
+0	Yes		
+Embed content request count per minute for a model in the free tier	Quota	model : gemini-embedding-1.0	100		
+0%
+0	Yes		
+Embed content request count per minute for a model in the free tier	Quota	model : gemini-embedding-2	100		
+0%
+0	Yes		
+Embed content request count per minute for a model in the free tier	Quota	model : gemini-embedding-2-exp	100		
+0%
+0	Yes		
+Embed content request count per minute for a model in the paid tier 1	Quota	model : embedding-001	3,000		
+0%
+0	Yes		
+Embed content request count per minute for a model in the paid tier 1	Quota	model : gemini-embedding-1.0	3,000		
+0%
+0	Yes		
+Embed content request count per minute for a model in the paid tier 1	Quota	model : gemini-embedding-2	3,000		
+0%
+0	Yes		
+Embed content request count per minute for a model in the paid tier 1	Quota	model : gemini-embedding-2-exp	3,000		
+0%
+0	Yes		
+Embed content request count per minute for a model in the paid tier 1	Quota	model : text-embedding-004	187		
+0%
+0	Yes		
+Embed content request count per minute for a model in the paid tier 2	Quota	model : embedding-001	5,000		
+0%
+0	Yes		
+Embed content request count per minute for a model in the paid tier 2	Quota	model : gemini-embedding-1.0	5,000		
+0%
+0	Yes		
+Embed content request count per minute for a model in the paid tier 2	Quota	model : gemini-embedding-2	5,000		
+0%
+0	Yes		
+Embed content request count per minute for a model in the paid tier 2	Quota	model : gemini-embedding-2-exp	5,000		
+0%
+0	Yes		
+Embed content request count per minute for a model in the paid tier 2	Quota	model : text-embedding-004	312		
+0%
+0	Yes		
+Embed content request count per minute for a model in the paid tier 3	Quota	model : embedding-001	20,000		
+0%
+0	Yes		
+Embed content request count per minute for a model in the paid tier 3	Quota	model : gemini-embedding-1.0	20,000		
+0%
+0	Yes		
+Embed content request count per minute for a model in the paid tier 3	Quota	model : gemini-embedding-2	20,000		
+0%
+0	Yes		
+Embed content request count per minute for a model in the paid tier 3	Quota	model : gemini-embedding-2-exp	20,000		
+0%
+0	Yes		
+Embed content request count per minute for a model in the paid tier 3	Quota	model : text-embedding-004	1,250		
+0%
+0	Yes		
+Embed content request limit per minute for a region	Quota	region : africa-south1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : asia-east1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : asia-east2	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : asia-northeast1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : asia-northeast2	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : asia-northeast3	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : asia-south1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : asia-south2	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : asia-southeast1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : asia-southeast2	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : asia-southeast3	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : australia-southeast1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : australia-southeast2	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : europe-central2	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : europe-north1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : europe-north2	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : europe-southwest1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : europe-west1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : europe-west10	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : europe-west12	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : europe-west2	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : europe-west3	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : europe-west4	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : europe-west6	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : europe-west8	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : europe-west9	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : me-central1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : me-central2	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : me-west1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : northamerica-northeast1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : northamerica-northeast2	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : northamerica-south1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : southamerica-east1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : southamerica-west1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : us-central1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : us-east1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : us-east4	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : us-east5	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : us-south1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : us-west1	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : us-west2	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : us-west3	Unlimited		-	0	Yes		
+Embed content request limit per minute for a region	Quota	region : us-west4	Unlimited		-	0	Yes		
+Embed content token limit per minute for a model in the free tier	Quota	model : gemini-embedding-1.0	30,000		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the free tier	Quota	model : gemini-embedding-2	30,000		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the free tier	Quota	model : gemini-embedding-2-exp	30,000		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the paid tier 1	Quota	model : embedding-001	1,000,000		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the paid tier 1	Quota	model : gemini-embedding-1.0	1,000,000		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the paid tier 1	Quota	model : gemini-embedding-2	1,000,000		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the paid tier 1	Quota	model : gemini-embedding-2-exp	1,000,000		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the paid tier 1	Quota	model : text-embedding-004	62,500		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the paid tier 2	Quota	model : embedding-001	5,000,000		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the paid tier 2	Quota	model : gemini-embedding-1.0	5,000,000		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the paid tier 2	Quota	model : gemini-embedding-2	5,000,000		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the paid tier 2	Quota	model : gemini-embedding-2-exp	5,000,000		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the paid tier 2	Quota	model : text-embedding-004	312,500		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the paid tier 3	Quota	model : embedding-001	20,000,000		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the paid tier 3	Quota	model : gemini-embedding-1.0	20,000,000		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the paid tier 3	Quota	model : gemini-embedding-2	20,000,000		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the paid tier 3	Quota	model : gemini-embedding-2-exp	20,000,000		
+0%
+0	Yes		
+Embed content token limit per minute for a model in the paid tier 3	Quota	model : text-embedding-004	1,250,000		
+0%
+0	Yes		
+EmbedContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-embedding-1.0	500,000		
+0%
+0	Yes		
+EmbedContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-embedding-2	500,000		
+0%
+0	Yes		
+EmbedContent Batch Active Number of Tokens Paid Tier 2 per project per model	Quota	model : gemini-embedding-1.0	5,000,000		
+0%
+0	Yes		
+EmbedContent Batch Active Number of Tokens Paid Tier 2 per project per model	Quota	model : gemini-embedding-2	5,000,000		
+0%
+0	Yes		
+EmbedContent Batch Active Number of Tokens Paid Tier 3 per project per model	Quota	model : gemini-embedding-1.0	10,000,000		
+0%
+0	Yes		
+EmbedContent Batch Active Number of Tokens Paid Tier 3 per project per model	Quota	model : gemini-embedding-2	10,000,000		
+0%
+0	Yes		
+File storage quota per project	Quota		21,474,836,480 B (21.475 GB)		
+0%
+0 B	Yes		
+GenerateContent Batch Active Batches Paid Tier 1 per project per model	Quota	model : c4n6t9g1su	Unlimited		-	0	Yes		
+GenerateContent Batch Active Batches Paid Tier 1 per project per model	Quota	model : k8f2m5p0rw	Unlimited		-	0	Yes		
+GenerateContent Batch Active Batches Paid Tier 1 per project per model	Quota	model : v7y3b1x9zq	Unlimited		-	0	Yes		
+GenerateContent Batch Active Batches Paid Tier 2 per project per model	Quota	model : c4n6t9g1su	Unlimited		-	0	Yes		
+GenerateContent Batch Active Batches Paid Tier 2 per project per model	Quota	model : k8f2m5p0rw	Unlimited		-	0	Yes		
+GenerateContent Batch Active Batches Paid Tier 2 per project per model	Quota	model : v7y3b1x9zq	Unlimited		-	0	Yes		
+GenerateContent Batch Active Batches Paid Tier 3 per project per model	Quota	model : c4n6t9g1su	Unlimited		-	0	Yes		
+GenerateContent Batch Active Batches Paid Tier 3 per project per model	Quota	model : k8f2m5p0rw	Unlimited		-	0	Yes		
+GenerateContent Batch Active Batches Paid Tier 3 per project per model	Quota	model : v7y3b1x9zq	Unlimited		-	0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : c4n6t9g1su	Unlimited		-	0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-2.0-flash	10,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-2.0-flash-lite	10,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-2.0-flash-preview-image-generation	3,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-2.5-flash	3,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-2.5-flash-1p	3,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-2.5-flash-exp	3,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-2.5-flash-lite	3,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-2.5-flash-preview-image	3,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-2.5-flash-tts	100,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-2.5-pro	5,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-2.5-pro-tts	25,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-3-flash	3,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-3-pro	5,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-3-pro-image	2,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-3.1-flash-image	1,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-3.1-flash-lite	10,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-3.1-flash-tts	100,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-3.1-pro	5,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-3.5-flash	3,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : gemini-robotics-er-1.6-preview	3,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : k8f2m5p0rw	Unlimited		-	0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 1 per project per model	Quota	model : v7y3b1x9zq	Unlimited		-	0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 2 per project per model	Quota	model : c4n6t9g1su	Unlimited		-	0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 2 per project per model	Quota	model : gemini-2.0-flash	500,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 2 per project per model	Quota	model : gemini-2.0-flash-lite	1,000,000,000		
+0%
+0	Yes		
+GenerateContent Batch Active Number of Tokens Paid Tier 2 per project per model	Quota	model : gemini-2.0-flash-preview-image-generation	400,000,000		
+0%
+0	Yes		
+Rows per page:
+200
+1 – 200 of 1709
+

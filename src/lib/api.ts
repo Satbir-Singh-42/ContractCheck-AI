@@ -6,6 +6,7 @@ import type {
   AnalysisStatusResponse,
   ShareReportResponse,
   PaymentCreateResponse,
+  DBReport,
 } from './schema';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -60,6 +61,60 @@ export async function apiDeleteAccount(): Promise<void> {
 }
 
 // ─── Reports ──────────────────────────────────────────────────────────────────
+
+export async function apiRetryAnalysis(report: DBReport): Promise<void> {
+  const userId = await getUserId();
+  
+  // 1. List user's files in storage
+  const { data: files, error: listError } = await supabase.storage.from('contracts').list(userId);
+  if (listError || !files || files.length === 0) {
+    throw new Error('Could not find original document in secure storage. Please re-upload.');
+  }
+
+  // 2. Find the file whose creation time most closely matches the report
+  const reportTime = new Date(report.created_at).getTime();
+  let closestFile = files[0];
+  let minDiff = Infinity;
+
+  for (const f of files) {
+    const fileTime = f.created_at ? new Date(f.created_at).getTime() : 0;
+    const diff = Math.abs(fileTime - reportTime);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closestFile = f;
+    }
+  }
+
+  // If the closest file is more than 5 minutes off, it's not the right one.
+  if (minDiff > 5 * 60 * 1000) {
+    throw new Error('Original document no longer in storage. Please re-upload.');
+  }
+
+  const storagePath = `${userId}/${closestFile.name}`;
+
+  // 3. Download the file blob
+  const { data: blob, error: downloadError } = await supabase.storage.from('contracts').download(storagePath);
+  if (downloadError || !blob) {
+    throw new Error('Failed to securely retrieve the document for retry.');
+  }
+
+  // 4. Update the DB report status to 'processing'
+  await supabase.from('reports').update({ status: 'processing', error_message: null }).eq('id', report.id);
+
+  // 5. Re-extract text and trigger analysis
+  const file = new File([blob], report.file_name, { type: blob.type });
+  const { extractTextFromFile } = await import('./documentExtraction');
+  
+  try {
+    const text = await extractTextFromFile(file);
+    if (!text) throw new Error('Could not extract text from document during retry.');
+    await apiStartContractAnalysis(report.id, text);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Retry failed';
+    await apiMarkReportFailed(report.id, msg);
+    throw err;
+  }
+}
 
 export async function apiUploadContract(
   file: File,

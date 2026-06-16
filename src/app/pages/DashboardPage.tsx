@@ -122,7 +122,18 @@ function ReportCard({ report, onDelete }: { report: DBReport; onDelete: (id: str
                 <div className="absolute right-0 top-full mt-1 w-40 bg-[#111115] border border-white/[0.1] rounded-xl shadow-2xl overflow-hidden z-20">
                   {isFailed && (
                     <button
-                      onClick={(e) => { e.stopPropagation(); setMenuOpen(false); navigate('/upload'); }}
+                      onClick={async (e) => { 
+                        e.stopPropagation(); 
+                        setMenuOpen(false); 
+                        try {
+                          const { apiRetryAnalysis } = await import('../../lib/api');
+                          await apiRetryAnalysis(report);
+                          // We navigate to process page so the user can watch the retry
+                          navigate(`/process/${report.id}`);
+                        } catch (err) {
+                          alert(err instanceof Error ? err.message : String(err));
+                        }
+                      }}
                       className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-blue-400 hover:bg-blue-500/10 transition-colors cursor-pointer"
                     >
                       <RefreshCw size={14} /> Try Again
