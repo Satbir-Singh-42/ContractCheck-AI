@@ -3,10 +3,26 @@ import { CheckCircle, Zap, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AppLayout } from '../components/AppLayout';
 import { useTopNavigate } from '../hooks/useTopNavigate';
+import { useAuth } from '../context/AuthContext';
+import { apiGetProfile } from '../../lib/api';
 
 export function SuccessPage() {
   const navigate = useTopNavigate();
+  const { updateUser } = useAuth();
   const [count, setCount] = useState(5);
+
+  // Refresh user's plan state from DB so the UI immediately shows Pro
+  useEffect(() => {
+    apiGetProfile()
+      .then(profile => {
+        updateUser({
+          plan: profile.plan === 'pro' ? 'pro' : 'free',
+          uploadsLimit: profile.uploads_limit,
+          uploadsUsed: profile.uploads_used,
+        });
+      })
+      .catch(console.error);
+  }, [updateUser]);
 
   useEffect(() => {
     if (count <= 0) {

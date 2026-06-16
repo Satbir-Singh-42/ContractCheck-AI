@@ -238,44 +238,6 @@ const FILTER_TABS: { key: FilterTab; label: string; color: string }[] = [
   { key: 'Safe', label: 'Safe', color: 'text-emerald-400' },
 ];
 
-const MOCK_SAMPLE_REPORT: Report = {
-  id: 'rep_12345',
-  name: 'Non-Disclosure Agreement (Standard)',
-  type: 'NDA',
-  parties: 'TechCorp India Pvt Ltd & VendorCorp Technologies',
-  overallRisk: 'Medium',
-  date: new Date().toISOString().slice(0, 10),
-  status: 'Completed',
-  clauses: [
-    {
-      id: 'c1',
-      title: 'Data Fiduciary Obligations (DPDP Act)',
-      originalText: 'The receiving party may process personal data without explicit consent if deemed necessary for business operations.',
-      riskLevel: 'Non-compliant',
-      issues: ['Violates Section 6 of DPDP Act 2023 requiring explicit, unbundled consent for personal data processing.'],
-      suggestions: ['Rewrite to explicitly require clear, affirmative consent before processing any personal data obtained during the NDA term.'],
-      relevantLaw: 'Digital Personal Data Protection Act, 2023'
-    },
-    {
-      id: 'c2',
-      title: 'Dispute Resolution & Jurisdiction',
-      originalText: 'Any disputes arising out of this agreement shall be solely subject to the jurisdiction of the courts of Delaware, USA.',
-      riskLevel: 'Risky',
-      issues: ['As both parties are Indian entities, foreign jurisdiction clauses may be unenforceable and extremely costly to dispute.'],
-      suggestions: ['Amend jurisdiction to a local Indian court (e.g., New Delhi or Mumbai) or stipulate arbitration under the Arbitration and Conciliation Act, 1996.'],
-      relevantLaw: 'Indian Contract Act 1872 & Arbitration Act 1996'
-    },
-    {
-      id: 'c3',
-      title: 'Term & Termination',
-      originalText: 'This agreement shall remain in effect indefinitely from the date of signing.',
-      riskLevel: 'Safe',
-      issues: [],
-      suggestions: ['While legally safe for trade secrets, consider adding a finite term (e.g., 3-5 years) for general confidential information.'],
-      relevantLaw: 'Standard Industry Practice'
-    }
-  ]
-};
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
@@ -288,13 +250,6 @@ export function SharePage() {
 
   useEffect(() => {
     if (!reportId) { setNotFound(true); setLoading(false); return; }
-    
-    // Intercept Demo ID from landing page
-    if (reportId === 'rep_12345') {
-      setReport(MOCK_SAMPLE_REPORT);
-      setLoading(false);
-      return;
-    }
 
     apiGetSharedReport(reportId)
       .then(res => {

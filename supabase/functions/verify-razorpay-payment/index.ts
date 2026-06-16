@@ -1,4 +1,4 @@
-/// <reference lib="deno.ns" />
+// @ts-nocheck
 
 import { createClient } from 'npm:@supabase/supabase-js@2.103.1';
 

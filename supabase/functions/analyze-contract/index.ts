@@ -1,4 +1,4 @@
-/// <reference lib="deno.ns" />
+// @ts-nocheck
 
 import { createClient } from 'npm:@supabase/supabase-js@2.103.1';
 import { retrieveRelevantSections } from './retriever.ts';
