@@ -208,8 +208,7 @@ export function SignupPage() {
 
           <p className="text-center text-xs text-slate-600 mt-4">
             By signing up, you agree to our{' '}
-            <span className="text-slate-500 cursor-pointer hover:text-slate-400">Terms</span> &{' '}
-            <span className="text-slate-500 cursor-pointer hover:text-slate-400">Privacy Policy</span>.
+            <Link to="/privacy" className="text-slate-500 hover:text-slate-400 underline underline-offset-2 transition-colors">Privacy Policy</Link>.
           </p>
         </div>
       </div>

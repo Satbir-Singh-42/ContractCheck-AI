@@ -279,7 +279,10 @@ export function ProfilePage() {
 
                   <div className="mt-6 pt-5 border-t border-white/[0.05] flex items-center justify-between">
                     <p className="text-xs text-slate-600">
-                      Member since April 2026
+                      Member since{' '}
+                      {user.createdAt
+                        ? new Date(user.createdAt).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
+                        : '—'}
                     </p>
                     <button
                       onClick={handleSave}

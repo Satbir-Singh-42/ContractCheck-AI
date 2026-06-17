@@ -12,6 +12,7 @@ export interface User {
   organization?: string;
   role?: string;
   notificationPrefs?: any;
+  createdAt?: string;
 }
 
 export type SignupResult = {
@@ -77,6 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         organization: '',
         role: '',
         notificationPrefs: null,
+        createdAt: undefined,
       };
     }
 
@@ -91,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role: profile.role || '',
       notificationPrefs: profile.notification_prefs || null,
       profilePhoto: profile.avatar_url || undefined,
+      createdAt: profile.created_at || undefined,
     };
   };
 

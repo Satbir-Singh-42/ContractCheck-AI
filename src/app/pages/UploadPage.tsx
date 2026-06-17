@@ -8,7 +8,7 @@ import { apiMarkReportFailed, apiStartContractAnalysis, apiUploadContract } from
 import { extractTextFromFile } from '../../lib/documentExtraction';
 import { cn } from '../../lib/utils';
 
-const ACCEPTED = ['.pdf', '.docx', '.doc', '.txt'];
+const ACCEPTED = ['.pdf', '.docx', '.txt'];
 const MAX_MB = 10;
 
 type Stage = 'idle' | 'uploading' | 'done' | 'error';

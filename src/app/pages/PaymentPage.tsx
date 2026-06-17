@@ -42,6 +42,7 @@ const PAYMENT_METHODS = [
     logoAlt: 'Razorpay logo',
     logoWrapClass: 'bg-white rounded-lg w-10 h-10',
     logoClass: 'object-cover',
+    comingSoon: false,
   },
   {
     id: 'stripe',
@@ -51,6 +52,7 @@ const PAYMENT_METHODS = [
     logoAlt: 'Stripe logo',
     logoWrapClass: 'bg-white rounded-lg w-10 h-10',
     logoClass: 'object-cover',
+    comingSoon: true,
   },
 ];
 
@@ -229,14 +231,22 @@ return (
                   return (
                     <button
                       key={m.id}
-                      onClick={() => setSelectedMethod(m.id)}
+                      onClick={() => !m.comingSoon && setSelectedMethod(m.id)}
+                      disabled={m.comingSoon}
                       className={cn(
-                        'flex items-center gap-3 p-4 rounded-xl border text-left transition-all duration-300',
-                        active
-                          ? 'border-blue-500/50 bg-gradient-to-r from-blue-500/15 to-blue-500/5'
-                          : 'border-white/[0.08] bg-[#0B101D] hover:border-white/20 hover:bg-[#10182B]'
+                        'relative flex items-center gap-3 p-4 rounded-xl border text-left transition-all duration-300',
+                        m.comingSoon
+                          ? 'border-white/[0.05] bg-[#0B101D] opacity-50 cursor-not-allowed'
+                          : active
+                            ? 'border-blue-500/50 bg-gradient-to-r from-blue-500/15 to-blue-500/5'
+                            : 'border-white/[0.08] bg-[#0B101D] hover:border-white/20 hover:bg-[#10182B]'
                       )}
                     >
+                      {m.comingSoon && (
+                        <span className="absolute top-2 right-2 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full border border-slate-500/30 text-slate-500 bg-slate-500/10">
+                          Soon
+                        </span>
+                      )}
                       <span className={cn('flex items-center justify-center shrink-0 overflow-hidden', m.logoWrapClass)}>
                         <img
                           src={m.logoSrc}
@@ -253,7 +263,7 @@ return (
 
                       <CheckCircle
                         size={14}
-                        className={cn('ml-auto shrink-0 transition-opacity', active ? 'text-blue-400 opacity-100' : 'text-slate-700 opacity-0')}
+                        className={cn('ml-auto shrink-0 transition-opacity', active && !m.comingSoon ? 'text-blue-400 opacity-100' : 'text-slate-700 opacity-0')}
                       />
                     </button>
                   );
@@ -387,6 +397,11 @@ return (
             <div className="bg-blue-500/10 border border-blue-500/25 rounded-xl p-4 mb-5 flex items-center justify-between">
               <span className="text-sm text-slate-200">Amount to pay</span>
               <span className="font-bold text-white">₹{totalDue.toLocaleString()} (incl. GST)</span>
+            </div>
+
+            <div className="flex items-start gap-2 text-xs text-slate-500 bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 mb-4">
+              <Lock size={13} className="shrink-0 mt-0.5 text-slate-400" />
+              <span>Clicking <strong className="text-slate-300">Pay</strong> will open Razorpay's secure checkout. You can pay via UPI, debit/credit card, or net banking — your card details are never handled by ContractCheck AI.</span>
             </div>
 
             <button
