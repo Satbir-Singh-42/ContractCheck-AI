@@ -378,14 +378,18 @@ Deno.serve(async (req) => {
       clippedText,
     ].join('\n');
 
+    // We prioritize 'flash' models because they are fast enough to complete within 
+    // the Supabase Edge Function strict compute/timeout limits.
     const fallbackModels = [
       normalizeModelId(Deno.env.get('GEMINI_MODEL')),
-      'gemini-3.1-pro',
       'gemini-3.5-flash',
-      'gemini-3-pro',
-      'gemini-2.5-pro',
       'gemini-2.5-flash',
-      'gemini-2.0-flash'
+      'gemini-2.0-flash',
+      // We put 'pro' models last because their deep reasoning takes 30+ seconds,
+      // which often exceeds the Edge Function's timeout, causing WORKER_RESOURCE_LIMIT.
+      'gemini-3.1-pro',
+      'gemini-3-pro',
+      'gemini-2.5-pro'
     ].filter(Boolean) as string[];
 
     // Remove duplicates to form the final prioritized list
